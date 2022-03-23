@@ -1,18 +1,9 @@
 pub mod watchdog;
 use watchdog::Watchdog;
+pub mod window;
 use windows::{
-    core::{
-        PSTR, PCSTR
-    },
     Win32::{
-        Foundation::GetLastError,
-        System::Threading::{
-            PROCESS_INFORMATION,
-            PROCESS_CREATION_FLAGS,
-            STARTUPINFOEXA,
-            CreateProcessA,
-            
-        }
+        Foundation::{BOOL, GetLastError},
     }
 };
 
@@ -22,36 +13,20 @@ type Result<T> = std::result::Result<T, Box<dyn std::error::Error>>;
 fn run_zoom(id: &str, pwd: &str) -> Result<()> {
     println!("here i cum id {} pwd {}", id, pwd);
 
-    let mut pi = PROCESS_INFORMATION::default();
-    let mut si = STARTUPINFOEXA::default();
-
     let args = format!(
         "\"--url=zoommtg://zoom.us/join?action=join&confno={}&pwd={}\"", id, pwd
     );
     let cmdline = format!("cmd /c %APPDATA%\\Zoom\\bin\\Zoom.exe {}", args);
 
-    let lp_application_name: PCSTR = PCSTR(0 as *const u8);
-    let lp_command_line = std::ffi::CString::new(cmdline).unwrap().into_raw();
-
-    unsafe {
-        let result = CreateProcessA(
-            lp_application_name, 
-            PSTR(lp_command_line as *mut u8), 
-            std::ptr::null_mut(), 
-            std::ptr::null_mut(), 
-            true, 
-            PROCESS_CREATION_FLAGS(0), 
-            std::ptr::null_mut(), 
-            PCSTR(0 as *const u8), 
-            &mut si.StartupInfo, 
-            &mut pi
+    let info = window::create_process(&cmdline)?;
+    if info.status == BOOL(0) {
+        let panicstr = format!(
+            "wtf process not created!!! {:?}", 
+            unsafe {GetLastError()}
         );
-        println!("{:?}", result);
-    }
+        panic!("{}", panicstr)
+    };
 
-    //let res = std::process::Command::new("cmd")
-    //    .args(["/c", "%APPDATA%\\Zoom\\bin\\Zoom.exe", &args])
-    //    .spawn();
     Ok(())
 }
 
@@ -85,10 +60,12 @@ fn main() -> Result<()> {
         let pwd_i = args.iter().position(|r| r == "-pwd").unwrap();
         let pwd = &args[pwd_i + 1];
 
-        run_zoom(id, pwd)?;
-
-        let wd = Watchdog::new(window_names, 1)?;
-        wd.watch();
+        let wd = Watchdog::new(window_names, 1, 10)?;
+        loop {
+            run_zoom(id, pwd)?;
+            wd.watch();
+        }
+        
         return Ok(())
     }
     else {

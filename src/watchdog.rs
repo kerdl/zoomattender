@@ -35,17 +35,20 @@ extern "system" fn enum_window(window: HWND, _: LPARAM) -> BOOL {
 
 pub struct Watchdog<'a> {
     window_names: Vec<&'a str>,
-    cooldown: u64
+    cooldown: u64,
+    max_missing: u64
 }
 
 impl<'a> Watchdog<'a> {
     pub fn new(
         window_names: Vec<&'a str>,
-        cooldown: u64
+        cooldown: u64,
+        max_missing: u64
     ) -> Result<Self> {
         Ok(Self {
             window_names,
-            cooldown
+            cooldown,
+            max_missing
         })
     }
 
@@ -68,11 +71,17 @@ impl<'a> Watchdog<'a> {
     }
 
     pub fn watch(&self) {
+        let mut counter: u64 = 0;
         loop {
+            if counter > self.max_missing {
+                break
+            }
+
             if self.opened() {
                 println!("ok found");
             }
             else {
+                counter += 1;
                 println!("where");
             }
             std::thread::sleep(
