@@ -9,7 +9,10 @@ use windows::{
             PROCESS_CREATION_FLAGS,
             STARTUPINFOEXA,
             CreateProcessA,
-            
+        },
+        UI::WindowsAndMessaging::{
+            MessageBoxA,
+            MB_OK
         }
     }
 };
@@ -48,4 +51,10 @@ pub fn create_process(cmdline: &str) -> Result<ProcessInfo> {
         info: pi,
         startup: si
     })
+}
+
+pub fn show_msgbox(text: &str, caption: &str) {
+    unsafe {
+        MessageBoxA(None, text, caption, MB_OK);
+    }
 }

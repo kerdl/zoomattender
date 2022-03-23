@@ -64,6 +64,7 @@ fn main() -> Result<()> {
         loop {
             run_zoom(id, pwd)?;
             wd.watch();
+            window::show_msgbox("pososesh) ok?", "hui")
         }
         
         return Ok(())

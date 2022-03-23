@@ -73,11 +73,12 @@ impl<'a> Watchdog<'a> {
     pub fn watch(&self) {
         let mut counter: u64 = 0;
         loop {
-            if counter > self.max_missing {
+            if counter >= self.max_missing {
                 break
             }
 
             if self.opened() {
+                counter = 0;
                 println!("ok found");
             }
             else {
