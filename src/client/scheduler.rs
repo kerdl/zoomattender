@@ -28,11 +28,11 @@ use windows::{
             IActionCollection,
             ITaskSettings, 
         }
-    }, core::Interface
+    }, core::{Interface, Error}
 };
 
-
 type Result<T> = std::result::Result<T, Box<dyn std::error::Error>>;
+
 pub struct Scheduler {
     pub name: Option<&'static str>,
     pub folder: Option<ITaskFolder>,
@@ -87,8 +87,22 @@ impl Scheduler {
 
     pub fn folder(mut self, path: &str) -> Result<Self> {
         self.folder = unsafe {
-            Some(self.service.GetFolder(BSTR::from(path))?)
+            let get = self.service.GetFolder(BSTR::from(path));
+            let get_a = match get {
+                Ok(itaskfolder) => itaskfolder,
+                Err(error) => {
+                    println!("{:?}", error);
+                    //match error {
+                    //    
+                    //}
+                    let f = self.service.GetFolder(BSTR::from("\\"));
+                    f.unwrap().CreateFolder(BSTR::from(path), VARIANT::default())?;
+                    self.service.GetFolder(BSTR::from(path)).unwrap()
+                }
+            };
+            Some(get_a)
         };
+        //self.folder?.CreateFolder(subfoldername, sddl)
         Ok(self)
     }
 
@@ -161,6 +175,12 @@ impl Scheduler {
             )?;
             self.settings.SetEnabled(1)?;
         }
+        Ok(())
+    }
+
+    pub fn test(self) -> Result<()> {
+        let p = unsafe {self.folder.unwrap().Path()};
+        println!("{:?}", p);
         Ok(())
     }
 }
