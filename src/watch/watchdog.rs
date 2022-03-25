@@ -1,15 +1,10 @@
 use windows::{
-    core::{
-        PCSTR
-    },
     Win32::Foundation::{
         BOOL,
         HWND,
         LPARAM
     },
     Win32::UI::WindowsAndMessaging::{
-        WNDENUMPROC,
-        FindWindowA, 
         EnumWindows,
         GetWindowTextW
     }, 
@@ -19,14 +14,18 @@ use ::core::time;
 type Result<T> = std::result::Result<T, Box<dyn std::error::Error>>;
 
 
-extern "system" fn enum_window(window: HWND, _: LPARAM) -> BOOL {
+extern "system" fn enum_window(
+    window: HWND, 
+    winds_struct: LPARAM
+) -> BOOL {
     unsafe {
+        let winds: &mut Vec<String> = std::mem::transmute(winds_struct);
         let mut text: [u16; 512] = [0; 512];
         let len = GetWindowTextW(window, &mut text);
         let text = String::from_utf16_lossy(&text[..len as usize]);
 
         if !text.is_empty() {
-            println!("{}", text);
+            winds.push(text);
         }
 
         true.into()
@@ -35,6 +34,7 @@ extern "system" fn enum_window(window: HWND, _: LPARAM) -> BOOL {
 
 pub struct Watchdog<'a> {
     window_names: Vec<&'a str>,
+    windname_len_thresh: usize,
     cooldown: u64,
     max_missing: u64
 }
@@ -42,32 +42,37 @@ pub struct Watchdog<'a> {
 impl<'a> Watchdog<'a> {
     pub fn new(
         window_names: Vec<&'a str>,
+        windname_len_thresh: usize,
         cooldown: u64,
         max_missing: u64
     ) -> Result<Self> {
         Ok(Self {
             window_names,
+            windname_len_thresh,
             cooldown,
             max_missing
         })
     }
 
     pub fn opened(&self) -> bool {
-        let mut hwnd: HWND;
-        //unsafe {
-        //    let b = EnumWindows(Some(enum_window), LPARAM(0)).ok();
-        //    println!("{:?}", b)
-        //};
-        
+        let mut winds: Vec<String> = vec![];
         unsafe {
-            for window in self.window_names.clone() {
-                hwnd = FindWindowA(PCSTR::default(), window);
-                if !hwnd.is_invalid() {
-                    return true
-                }
-            }
+            let _ = EnumWindows(
+                Some(enum_window), 
+                LPARAM(&mut winds as *mut _ as _)
+            ).ok();
+        };
+
+        let mut checks: Vec<bool> = vec![];
+        for window in self.window_names.clone() {
+            let contains = winds.iter().any(
+                |e| e.starts_with(window) && 
+                e.len() <= window.len() + self.windname_len_thresh
+            );
+            checks.push(contains);
         }
-        return false
+
+        checks.iter().any(|e| e == &true)
     }
 
     pub fn watch(&self) {

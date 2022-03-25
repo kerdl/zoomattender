@@ -27,7 +27,10 @@ pub struct ProcessInfo {
     pub startup: STARTUPINFOEXA
 }
 
-pub fn create_process(cmdline: &str) -> Result<ProcessInfo> {
+pub fn create_process(
+    cmdline: &str,
+    creation_flag: PROCESS_CREATION_FLAGS
+) -> Result<ProcessInfo> {
     let app_name: PCSTR = PCSTR(0 as *const u8);
     let _cmdline = std::ffi::CString::new(cmdline).unwrap().into_raw();
     let mut pi = PROCESS_INFORMATION::default();
@@ -38,7 +41,7 @@ pub fn create_process(cmdline: &str) -> Result<ProcessInfo> {
         std::ptr::null_mut(), 
         std::ptr::null_mut(), 
         true, 
-        PROCESS_CREATION_FLAGS(0), 
+        creation_flag, 
         std::ptr::null_mut(), 
         PCSTR(0 as *const u8), 
         &mut si.StartupInfo, 
