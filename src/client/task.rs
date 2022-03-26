@@ -1,39 +1,31 @@
-use serde::Deserialize;
 use crate::scheduler::Scheduler;
-
+use crate::ZOOM_ATTENDER_PATH;
+use crate::mappings::Tasks;
 
 type Result<T> = std::result::Result<T, Box<dyn std::error::Error>>;
 
-#[derive(Deserialize, Debug, Clone)]
-struct ZoomData {
-    url: String,
-    id: String,
-    pwd: String
-}
-
-#[derive(Deserialize, Debug, Clone)]
-struct Task {
-    name: String,
-    teacher: String,
-    start: String,
-    end: String,
-    zoom_data: ZoomData
-}
-
-#[derive(Deserialize, Debug)]
-pub struct Tasks {
-    tasks: Vec<Task>
-}
 
 impl Tasks {
     pub fn make(&self) -> Result<()> {
+        let sc = Scheduler::new()?;
+
+        match sc.folder_exists(ZOOM_ATTENDER_PATH) {
+            true => (),
+            false => {sc.make_folder(ZOOM_ATTENDER_PATH)?; ()}
+        }
+
         for task in self.tasks.clone() {
             Scheduler::new()?
-                .name("gg")?
+                .name(
+                    format!("{} {} {}", 
+                    task.num,
+                    task.name,
+                    task.teacher
+                ))?
                 .action("notepad", "", "")?
-                .time_trigger(&task.start, Some(&task.end), None)?
-                .folder("\\ZoomAttender")?
-                .test();
+                .time_trigger(&task.start, None, None)?
+                .folder(ZOOM_ATTENDER_PATH)?
+                .register()?;
         }
         Ok(())
     }

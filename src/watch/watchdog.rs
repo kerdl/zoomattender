@@ -32,16 +32,16 @@ extern "system" fn enum_window(
     }
 }
 
-pub struct Watchdog<'a> {
-    window_names: Vec<&'a str>,
+pub struct Watchdog {
+    window_names: Vec<String>,
     windname_len_thresh: usize,
     cooldown: u64,
     max_missing: u64
 }
 
-impl<'a> Watchdog<'a> {
+impl Watchdog {
     pub fn new(
-        window_names: Vec<&'a str>,
+        window_names: Vec<String>,
         windname_len_thresh: usize,
         cooldown: u64,
         max_missing: u64
@@ -66,7 +66,7 @@ impl<'a> Watchdog<'a> {
         let mut checks: Vec<bool> = vec![];
         for window in self.window_names.clone() {
             let contains = winds.iter().any(
-                |e| e.starts_with(window) && 
+                |e| e.starts_with(&window) && 
                 e.len() <= window.len() + self.windname_len_thresh
             );
             checks.push(contains);

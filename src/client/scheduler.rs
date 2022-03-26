@@ -24,23 +24,23 @@ use windows::{
             ITaskService,
             ITaskDefinition,
             ITriggerCollection,
-            IRegistrationInfo,
+            //IRegistrationInfo,
             IActionCollection,
             ITaskSettings, 
         }
-    }, core::{Interface, Error}
+    }, core::{Interface}
 };
 
 type Result<T> = std::result::Result<T, Box<dyn std::error::Error>>;
 
 pub struct Scheduler {
-    pub name: Option<&'static str>,
+    pub name: Option<String>,
     pub folder: Option<ITaskFolder>,
     service: ITaskService,
     def: ITaskDefinition,
     triggers: ITriggerCollection,
     actions: IActionCollection,
-    reginfo: IRegistrationInfo,
+    //reginfo: IRegistrationInfo,
     settings: ITaskSettings,
 }
 
@@ -62,7 +62,7 @@ impl Scheduler {
             let def: ITaskDefinition = service.NewTask(0)?;
             let triggers: ITriggerCollection = def.Triggers()?;
             let actions: IActionCollection = def.Actions()?;
-            let reginfo: IRegistrationInfo = def.RegistrationInfo()?;
+            //let reginfo: IRegistrationInfo = def.RegistrationInfo()?;
             let settings: ITaskSettings = def.Settings()?;
 
             println!("{:?}", GetLastError());
@@ -74,36 +74,41 @@ impl Scheduler {
             def,
             triggers,
             actions,
-            reginfo,
+            //reginfo,
             settings
         })
         }
     }
 
-    pub fn name(mut self, name: &'static str) -> Result<Self> {
+    pub fn name(mut self, name: String) -> Result<Self> {
         self.name = Some(name);
         Ok(self)
     }
 
     pub fn folder(mut self, path: &str) -> Result<Self> {
         self.folder = unsafe {
-            let get = self.service.GetFolder(BSTR::from(path));
-            let get_a = match get {
-                Ok(itaskfolder) => itaskfolder,
-                Err(error) => {
-                    println!("{:?}", error);
-                    //match error {
-                    //    
-                    //}
-                    let f = self.service.GetFolder(BSTR::from("\\"));
-                    f.unwrap().CreateFolder(BSTR::from(path), VARIANT::default())?;
-                    self.service.GetFolder(BSTR::from(path)).unwrap()
-                }
-            };
-            Some(get_a)
+            Some(self.service.GetFolder(BSTR::from(path))?)
         };
-        //self.folder?.CreateFolder(subfoldername, sddl)
         Ok(self)
+    }
+
+    pub fn folder_exists(&self, path: &str) -> bool {
+        unsafe {
+            let f = self.service.GetFolder(BSTR::from(path));
+            match f {
+                Ok(_) => true,
+                Err(_) => false
+            }
+        }
+    }
+
+    pub fn make_folder(&self, path: &str) -> Result<ITaskFolder> {
+        unsafe {
+            let root = self.service.GetFolder(BSTR::from("\\"))?;
+            root.CreateFolder(BSTR::from(path), VARIANT::default())?;
+            let from_path = self.service.GetFolder(BSTR::from(path))?;
+            Ok(from_path)
+        }
     }
 
     pub fn action(
