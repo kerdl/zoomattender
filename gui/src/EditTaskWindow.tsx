@@ -1,0 +1,72 @@
+import {
+  Modal,
+  Button,
+  Center,
+  NumberInput,
+  Textarea,
+  TextInput,
+  Divider,
+  Checkbox,
+  Space,
+  MantineProvider,
+  Select,
+  Image,
+  Text
+} from '@mantine/core';
+import {
+  DatePicker,
+  TimeRangeInput
+} from '@mantine/dates'
+import { useState } from 'react';
+
+
+const EditTaskWindow = function EditTaskWindow(props: any) {
+  const [timeValue, setTimeValue] = useState<[Date, Date]>([new Date(), new Date()])
+  const [dateValue, setDateValue] = useState<[Date | null]>([new Date()])
+  const [idValue, setIdValue] = useState("228 1337 6969")
+  const [pwdValue, setPwdValue] = useState("so tr")
+
+  return (
+    <Modal
+      title="Изменить задачу"
+      opened={props.opened}
+      onClose={() => props.toggleFunc(false)}>
+      <Divider
+        my="xs"
+        label="Время"
+        labelPosition="center" />
+      <TimeRangeInput
+        required
+        value={timeValue}
+        onChange={setTimeValue}
+        error={
+          timeValue[0] == null ||
+            timeValue[1] == null ? true : false}
+        clearable
+        label="Промежуток задачи" />
+      <Space h="sm" />
+      <DatePicker
+        required
+        value={dateValue[0]}
+        onChange={(d) => setDateValue([d])}
+        error={dateValue[0] == null}
+        label="Дата задачи"
+        placeholder="Выбрать" />
+      <Divider my="xs" label="Zoom" labelPosition="center" />
+      <TextInput
+        required
+        value={idValue}
+        onChange={(event) => setIdValue(event.currentTarget.value)}
+        error={idValue.length <= 0 ? true : false}
+        label="ID" />
+      <Space h="sm" />
+      <TextInput
+        value={pwdValue}
+        onChange={(event) => setPwdValue(event.currentTarget.value)}
+        label="Пароль" />
+
+    </Modal>
+  )
+}
+
+export default EditTaskWindow;
