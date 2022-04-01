@@ -7,19 +7,22 @@ pub mod scheduler;
 pub mod task;
 pub mod mappings;
 
+use app::window;
 use serde_json;
-use mappings::Tasks;
+use mappings::api_response::Tasks;
 
 type Result<T> = std::result::Result<T, Box<dyn std::error::Error>>;
 
 const ZOOM_ATTENDER_PATH: &str = "\\ZoomAttender";
 
 
+
 fn main() {
 
     tauri::Builder::default()
-    .run(tauri::generate_context!())
-    .expect("error while running tauri application");
+      .invoke_handler(tauri::generate_handler![scheduler::open_scheduler]) // This one
+      .run(tauri::generate_context!())
+      .expect("error while running tauri application");
 
     //println!("this is client sir");
     //let resp = std::fs::read_to_string("resp.json").unwrap();

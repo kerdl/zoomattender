@@ -23,6 +23,7 @@ import { useState } from 'react';
 const EditTaskWindow = function EditTaskWindow(props: any) {
   const [timeValue, setTimeValue] = useState<[Date, Date]>([new Date(), new Date()])
   const [dateValue, setDateValue] = useState<[Date | null]>([new Date()])
+  const [zoomVariantValue, setZoomVariantValue] = useState<string | null>("Соси А.А.")
   const [idValue, setIdValue] = useState("228 1337 6969")
   const [pwdValue, setPwdValue] = useState("so tr")
 
@@ -35,6 +36,7 @@ const EditTaskWindow = function EditTaskWindow(props: any) {
         my="xs"
         label="Время"
         labelPosition="center" />
+      <Center>
       <TimeRangeInput
         required
         value={timeValue}
@@ -44,7 +46,7 @@ const EditTaskWindow = function EditTaskWindow(props: any) {
             timeValue[1] == null ? true : false}
         clearable
         label="Промежуток задачи" />
-      <Space h="sm" />
+      <Space w="sm" />
       <DatePicker
         required
         value={dateValue[0]}
@@ -52,19 +54,32 @@ const EditTaskWindow = function EditTaskWindow(props: any) {
         error={dateValue[0] == null}
         label="Дата задачи"
         placeholder="Выбрать" />
+      </Center>
       <Divider my="xs" label="Zoom" labelPosition="center" />
+      <Select
+          label="Вариант"
+          placeholder="Выбрать"
+          data={[
+            { value: 'Соси А.А.', label: 'Соси А.А.' },
+            { value: 'Соси А.Б.', label: 'Соси А.Б.' }
+          ]}
+          value={zoomVariantValue}
+          onChange={(string) => setZoomVariantValue(string)}
+        />
+      <Space h="sm" />
+      <Center>
       <TextInput
         required
         value={idValue}
         onChange={(event) => setIdValue(event.currentTarget.value)}
         error={idValue.length <= 0 ? true : false}
         label="ID" />
-      <Space h="sm" />
+      <Space w="sm" />
       <TextInput
         value={pwdValue}
         onChange={(event) => setPwdValue(event.currentTarget.value)}
         label="Пароль" />
-
+      </Center>
     </Modal>
   )
 }

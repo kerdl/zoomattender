@@ -12,7 +12,7 @@ import {
   Image,
   Text
 } from '@mantine/core';
-import { useState } from 'react';
+import React, { useState } from 'react';
 
 const ResetConfirm = function ResetConfirm(props: any) {
   return (
@@ -39,6 +39,10 @@ const ResetConfirm = function ResetConfirm(props: any) {
 }
 
 const SettingsWindow = function SettingsWindow(props: any) {
+  const [apiValue, setApiValue] = useState(
+    "https://api.npoint.io/3c76aea653761267e1f2"
+  );
+  const [groupValue, setGroupValue] = useState<string | null>("1КДД22");
   const [zoomPathValue, setZoomPathValue] = useState(
     "%APPDATA%\\Zoom\\bin\\Zoom.exe"
   );
@@ -60,6 +64,23 @@ const SettingsWindow = function SettingsWindow(props: any) {
         onClose={() => props.toggleFunc()}
         title="Настройки"
       >
+        <Divider my="xs" label="Задачи" labelPosition="center" />
+        <TextInput
+          label="API"
+          value={apiValue}
+          onChange={(event) => setApiValue(event.currentTarget.value)}>
+        </TextInput>
+        <Space h='sm' />
+        <Select
+          label="Группа"
+          placeholder="Выбрать"
+          data={[
+            { value: '1КДД20', label: '1КДД20' },
+            { value: '1КДД22', label: '1КДД22' }
+          ]}
+          value={groupValue}
+          onChange={(string) => setGroupValue(string)}
+        />
         <Divider my="xs" label="Zoom" labelPosition="center" />
         <TextInput
           required
@@ -136,20 +157,10 @@ const SettingsWindow = function SettingsWindow(props: any) {
 
         <Divider my="xs" label="Конфликты" labelPosition="center" />
         <Checkbox
-          label="Убивать Zoom"
+          label="Убивать Zoom до начала следующей задачи"
           color="ocean-blue"
           checked={killZoomValue}
           onChange={(event) => setKillZoomValue(event.currentTarget.checked)} />
-        <Space h="sm" />
-        <NumberInput
-          defaultValue={5}
-          label="За сколько до начала следующей задачи убить Zoom"
-          description="в секундах"
-          min={2}
-          stepHoldDelay={500}
-          stepHoldInterval={50}
-          disabled={!killZoomValue}
-        />
 
         <Divider my="xs" label="Уведомления" labelPosition="center" />
         <Checkbox

@@ -1,7 +1,8 @@
 import { useState } from 'react';
+import { invoke } from '@tauri-apps/api/tauri';
 import SettingsWindow from "./SettingsWindow";
 import EditTaskWindow from './EditTaskWindow';
-import { Adjustments, Refresh, Settings } from 'tabler-icons-react';
+import { Adjustments, ArrowUpRight, Refresh, Settings } from 'tabler-icons-react';
 import {
   Text,
   Popover,
@@ -112,7 +113,17 @@ const Main = function Main(props: any) {
             <tbody>{rows}</tbody>
           </Table>
         </ScrollArea>
-        <Space h='xl' />
+        <Space h='sm' />
+        <Center>
+          <Button
+            variant="outline"
+            compact
+            leftIcon={<ArrowUpRight />}
+            onClick={() => invoke('open_scheduler')}>
+          Открыть планировщик заданий
+          </Button>
+        </Center>
+        <Space h='sm' />
         <Center>
           <Button
             color={"gray"}

@@ -2,6 +2,7 @@ import { MantineProvider } from '@mantine/core';
 import './App.css';
 import Main from './Main';
 
+
 function App() {
   return (
     <MantineProvider theme={{

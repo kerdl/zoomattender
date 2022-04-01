@@ -1,0 +1,25 @@
+{
+    "tasks": {
+        "api_url": "https://api.npoint.io/3c76aea653761267e1f2",
+        "group": null
+    },
+    "zoom": {
+        "zoom_path": "%APPDATA%\\Zoom\\bin\\Zoom.exe",
+        "args": "\"--url=zoommtg://zoom.us/join?action=join&confno={}&pwd={}\""
+    },
+    "rejoin": {
+        "do_rejoin": true,
+        "max_nowindows": 2,
+        "zoom_language": null,
+        "zoom_windnames": null,
+        "rejoin_confirm_await": 10,
+        "donot_rejoin_end": 10
+    },
+    "conflicts": {
+        "kill_zoom": true
+    },
+    "notifications": {
+        "task_upd_notify": false,
+        "questionable_zoom_variant": true
+    }
+}

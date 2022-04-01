@@ -1,6 +1,6 @@
 use crate::scheduler::Scheduler;
 use crate::ZOOM_ATTENDER_PATH;
-use crate::mappings::Tasks;
+use crate::mappings::api_response::Tasks;
 
 type Result<T> = std::result::Result<T, Box<dyn std::error::Error>>;
 

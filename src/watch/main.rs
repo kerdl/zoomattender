@@ -1,10 +1,10 @@
 //#![windows_subsystem = "windows"]
 
 pub mod watchdog;
-pub mod window;
 pub mod fmtstring;
 pub mod zoom;
 
+use app::window;
 use clap::Parser;
 use watchdog::Watchdog;
 use zoom::Zoom;
