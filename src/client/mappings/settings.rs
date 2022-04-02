@@ -1,43 +1,42 @@
-use serde::Deserialize;
+use serde::{Deserialize, Serialize};
 
-#[derive(Deserialize, Debug, Clone)]
-struct Notifications {
-    task_upd_notify: bool,
-    questionable_zoom_variant: bool
+#[derive(Serialize, Deserialize, Debug, Clone)]
+pub struct Notifications {
+    pub task_upd_notify: bool,
+    pub questionable_zoom_variant: bool
 }
 
-#[derive(Deserialize, Debug, Clone)]
-struct Conflicts {
-    kill_zoom: bool
+#[derive(Serialize, Deserialize, Debug, Clone)]
+pub struct Conflicts {
+    pub kill_zoom: bool
 }
 
-#[derive(Deserialize, Debug, Clone)]
-struct Rejoin {
-    do_rejoin: bool,
-    max_nowindows: u32,
-    zoom_language: Option<String>,
-    zoom_windnames: Option<String>,
-    rejoin_confirm_await: u32,
-    donot_rejoin_end: u32
+#[derive(Serialize, Deserialize, Debug, Clone)]
+pub struct Rejoin {
+    pub do_rejoin: bool,
+    pub max_nowindows: u32,
+    pub zoom_language: Option<String>,
+    pub zoom_windnames: Option<String>,
+    pub rejoin_confirm_await: u32,
+    pub donot_rejoin_end: u32
 }
 
-#[derive(Deserialize, Debug, Clone)]
-struct Zoom {
-    zoom_path: String,
-    args: String
+#[derive(Serialize, Deserialize, Debug, Clone)]
+pub struct Zoom {
+    pub zoom_path: String,
 }
 
-#[derive(Deserialize, Debug, Clone)]
-struct Tasks {
-    api_url: String,
-    group: Option<String>
+#[derive(Serialize, Deserialize, Debug, Clone)]
+pub struct Tasks {
+    pub api_url: String,
+    pub group: Option<String>
 }
 
-#[derive(Deserialize, Debug, Clone)]
-struct Settings {
-    tasks: Tasks,
-    zoom: Zoom,
-    rejoin: Rejoin,
-    conflicts: Conflicts,
-    notifications: Notifications
+#[derive(Serialize, Deserialize, Debug, Clone)]
+pub struct Settings {
+    pub tasks: Tasks,
+    pub zoom: Zoom,
+    pub rejoin: Rejoin,
+    pub conflicts: Conflicts,
+    pub notifications: Notifications
 }

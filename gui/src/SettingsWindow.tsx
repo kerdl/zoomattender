@@ -46,9 +46,6 @@ const SettingsWindow = function SettingsWindow(props: any) {
   const [zoomPathValue, setZoomPathValue] = useState(
     "%APPDATA%\\Zoom\\bin\\Zoom.exe"
   );
-  const [zoomArgsValue, setZoomArgsValue] = useState(
-    "\"--url=zoommtg://zoom.us/join?action=join&confno={}&pwd={}\""
-  );
   const [rejoinValue, setRejoinValue] = useState(true)
   const [killZoomValue, setKillZoomValue] = useState(true)
   const [showResetConfirm, setShowResetConfirm] = useState(false)
@@ -88,14 +85,6 @@ const SettingsWindow = function SettingsWindow(props: any) {
           value={zoomPathValue}
           onChange={(event) => setZoomPathValue(event.currentTarget.value)}
           error={zoomPathValue.length <= 0 ? "Без пути хз как открыть зум..." : false} />
-        <Space h="sm" />
-        <TextInput
-          required
-          label="Аргументы"
-          defaultValue={"\"--url=zoommtg://zoom.us/join?action=join&confno={id}&pwd={pwd}\""}
-          value={zoomArgsValue}
-          onChange={(event) => setZoomArgsValue(event.currentTarget.value)}
-          error={zoomArgsValue.length <= 0 ? "Без них не зайти в конфу окда" : false} />
         <Space h="sm" />
 
         <Divider my="xs" label="Перезаход" labelPosition="center" />

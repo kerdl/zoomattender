@@ -24,6 +24,8 @@ async function updateRequest() {
   return new Promise(resolve => setTimeout(resolve, 2000, "content"))
 }
 
+console.log("entry point")
+
 const Main = function Main(props: any) {
   const [updateInProcess, setUpdateInProcess] = useState(false)
   const [settingsOpened, setSettingsOpened] = useState(false);
