@@ -17,6 +17,7 @@ import {
   Tooltip,
   Center,
   MantineProvider,
+  LoadingOverlay
 
 } from '@mantine/core';
 
@@ -24,12 +25,22 @@ async function updateRequest() {
   return new Promise(resolve => setTimeout(resolve, 2000, "content"))
 }
 
-console.log("entry point")
+var settingsContent = {api_url: "a"}
+var prefsContent = {}
 
-const Main = function Main(props: any) {
-  const [updateInProcess, setUpdateInProcess] = useState(false)
+const Main = function Main() {
+  const [isLoading, setIsLoading] = useState(true);
+  const [updateInProcess, setUpdateInProcess] = useState(false);
   const [settingsOpened, setSettingsOpened] = useState(false);
   const [editOpened, setEditOpened] = useState(false);
+
+  async function loadConfig() {
+    settingsContent = JSON.parse(await invoke('load_settings'))
+    prefsContent = JSON.parse(await invoke('load_prefs'))
+    setIsLoading(false)
+  };
+
+  loadConfig();
 
   const updateButton = <Button
     variant="gradient"
@@ -92,6 +103,10 @@ const Main = function Main(props: any) {
       alignItems: 'center',
       height: '100vh'
     }}>
+      <LoadingOverlay 
+        visible={isLoading} 
+        overlayOpacity={1} 
+        overlayColor="#1e1e1e"/>
       <div>
         <div style={{ display: 'flex', flexDirection: 'row' }}>
           {updateButton}

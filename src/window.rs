@@ -1,6 +1,6 @@
 use windows::{
     core::{
-        PSTR, PCSTR, Error
+        PSTR, PCSTR
     },
     Win32::{
         Foundation::BOOL,

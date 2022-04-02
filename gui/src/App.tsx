@@ -1,7 +1,7 @@
-import { MantineProvider } from '@mantine/core';
+import { MantineProvider, LoadingOverlay } from '@mantine/core';
 import './App.css';
 import Main from './Main';
-
+import { invoke } from '@tauri-apps/api';
 
 function App() {
   return (

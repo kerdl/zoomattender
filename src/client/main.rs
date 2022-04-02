@@ -3,6 +3,7 @@
     windows_subsystem = "windows"
   )]
 
+pub mod gui;
 pub mod scheduler;
 pub mod task;
 pub mod mappings;
@@ -12,9 +13,6 @@ pub mod pref_variants;
 
 use lazy_static::lazy_static;
 use app::window;
-use serde_json;
-use serde;
-use mappings::api_response::Tasks;
 use mappings::settings::Settings;
 use mappings::pref_variants::PrefVariants;
 
@@ -53,7 +51,12 @@ fn main() -> Result<()> {
     }
 
     tauri::Builder::default()
-        .invoke_handler(tauri::generate_handler![scheduler::open_scheduler])
+        .invoke_handler(tauri::generate_handler![
+            gui::open_scheduler,
+            gui::load_settings,
+            gui::load_prefs,
+            gui::save_settings
+        ])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");
     Ok(())

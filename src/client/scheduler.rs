@@ -1,13 +1,9 @@
-use app::window;
 use windows::{
     Win32::Foundation::{
         BSTR,
         GetLastError
     },
     Win32::System::{
-        Threading::{
-            CREATE_NO_WINDOW
-        },
         Com::{
             VARIANT,
             COINIT_MULTITHREADED,
@@ -192,9 +188,4 @@ impl Scheduler {
         println!("{:?}", p);
         Ok(())
     }
-}
-
-#[tauri::command]
-pub fn open_scheduler() {
-    let _ = window::create_process("cmd /c taskschd", CREATE_NO_WINDOW); 
 }
