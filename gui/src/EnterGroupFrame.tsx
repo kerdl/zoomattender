@@ -32,12 +32,9 @@ function getAllGroups(groups: any) {
 }
 
 function EditGroupFrame(props: any) {
-    const [settingsGroupSelect, setSettingsGroupSelect] = useState<null | string>("");
-    const [settingsGroupType, setSettingsGroupType] = useState<null | string>(null);
-
     function switchGroupInput() {
-        setSettingsGroupSelect((o) => typeof o == 'string' ? null : "");
-        setSettingsGroupType((o) => typeof o == 'string' ? null : "");
+        props.setSettingsGroupSelect((o: any) => typeof o == 'string' ? null : "");
+        props.setSettingsGroupType((o: any) => typeof o == 'string' ? null : "");
     }
 
     return (
@@ -46,16 +43,19 @@ function EditGroupFrame(props: any) {
           <Text 
             color="gray"
           >
-          {settingsGroupSelect == "" ? "Выбери свою группу" : "Введи свою группу"}
+          {typeof props.settingsGroupSelect == "string" ? "Выбери свою группу" : "Введи свою группу"}
           </Text>
         </Center>
         <Space h='sm' />
         <Center>
-          {settingsGroupSelect == "" && props.tasks && <Select 
+          {typeof props.settingsGroupSelect == "string" && props.tasks && <Select 
             data={getAllGroups(props.tasks.groups)}
-            value={settingsGroupSelect}
+            value={props.settingsGroupSelect}
+            onChange={(v) => props.setSettingsGroupSelect(v)}
             placeholder="Группа"/>}
-          {settingsGroupType == "" && <TextInput
+          {typeof props.settingsGroupType == "string" && <TextInput
+            value={props.settingsGroupType}
+            onChange={(e) => props.setSettingsGroupType(e.target.value)}
             placeholder="Группа"
             />}
         </Center>
@@ -67,7 +67,7 @@ function EditGroupFrame(props: any) {
             variant="subtle"
             onClick={() => {switchGroupInput()}}
           >
-          {settingsGroupSelect == "" ? "Ввести группу" : "Выбрать группу"}
+          {typeof props.settingsGroupSelect == "string" ? "Ввести группу" : "Выбрать группу"}
           </Button>
         </Center>
       </div>

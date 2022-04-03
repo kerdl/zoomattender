@@ -36,7 +36,8 @@ function EnterZoomLanguageFrame(props: any) {
         <Space h='sm' />
         <Container size={300}>
         <Select
-          value="Русский"
+          value={props.settingsZoomLanguage}
+          onChange={(v) => props.setSettingsZoomLanguage(v)}
           placeholder="Язык Zoom"
           data={[
             { value: 'ru', label: 'Русский' },
@@ -45,17 +46,16 @@ function EnterZoomLanguageFrame(props: any) {
         />
         </Container>
         <Space h='sm' />
-        
-          <Center>
-            <Button 
-                compact 
-                color="gray" 
-                variant="subtle"
-                onClick={() => props.nextStep()}
-            >
-            Не перезаходить в Zoom
-            </Button>
-          </Center>
+        <Center>
+          <Button 
+              compact 
+              color="gray" 
+              variant="subtle"
+              onClick={() => props.nextStep()}
+          >
+          Не перезаходить в Zoom
+          </Button>
+        </Center>
         
       </div>
     );

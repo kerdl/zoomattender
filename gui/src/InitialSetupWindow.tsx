@@ -31,12 +31,11 @@ import { FinishSetup } from './FinishSetup';
 const InitialSetupWindow = function InitialSetupWindow(props: any) {
     const [settingsGroupSelect, setSettingsGroupSelect] = useState<null | string>("");
     const [settingsGroupType, setSettingsGroupType] = useState<null | string>(null);
+    const [settingsZoomLanguage, setSettingsZoomLanguage] = useState<null | string>("ru");
 
     const [active, setActive] = useState(0);
     const nextStep = () => setActive((current) => (current < 2 ? current + 1 : current));
     const prevStep = () => setActive((current) => (current > 0 ? current - 1 : current));
-
-    console.log(props.toggleFunc);
 
     return (
       <>
@@ -47,11 +46,19 @@ const InitialSetupWindow = function InitialSetupWindow(props: any) {
           >
             <Stepper.Step label="Группа">
               <Space h={80}/>
-              <EditGroupFrame tasks={props.tasks} />
+              <EditGroupFrame 
+                tasks={props.tasks}
+                settingsGroupSelect={settingsGroupSelect}
+                settingsGroupType={settingsGroupType}
+                setSettingsGroupSelect={setSettingsGroupSelect}
+                setSettingsGroupType={setSettingsGroupType} />
             </Stepper.Step>
             <Stepper.Step label="Язык Zoom">
               <Space h={80}/>
-              <EnterZoomLanguageFrame nextStep={nextStep}/>
+              <EnterZoomLanguageFrame 
+                nextStep={nextStep}
+                settingsZoomLanguage={settingsZoomLanguage}
+                setSettingsZoomLanguage={setSettingsZoomLanguage} />
             </Stepper.Step>
             <Stepper.Completed>
               <Space h={90}/>
