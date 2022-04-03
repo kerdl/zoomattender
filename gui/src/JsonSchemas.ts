@@ -1,30 +1,61 @@
-var settingsSchema = {
-    "tasks": {
-      "api_url": "",
-      "group": null
+// settings //
+interface settingsSchema {
+    tasks: {
+      api_url: string,
+      group: null
     },
-    "zoom": {
-      "zoom_path": ""
+    zoom: {
+      zoom_path: string
     },
-    "rejoin": {
-      "do_rejoin": true,
-      "max_nowindows": 0,
-      "zoom_language": null,
-      "zoom_windnames": null,
-      "rejoin_confirm_await": 0,
-      "donot_rejoin_end": 0
+    rejoin: {
+      do_rejoin: boolean,
+      max_no_windows: number,
+      zoom_language: string,
+      zoom_windnames: string,
+      rejoin_confirm_await: number,
+      do_not_rejoin_end: number
     },
-    "conflicts": {
-      "kill_zoom": true
+    conflicts: {
+      kill_zoom: boolean
     },
-    "notifications": {
-      "task_upd_notify": false,
-      "questionable_zoom_variant": true
+    notifications: {
+      task_upd_notify: boolean,
+      questionable_zoom_variant: boolean
     }
 }
 
-var prefsSchema = {
-    "teachers": []
+// prefs //
+interface prefsSchema {
+    teachers: []
 }
 
-export {settingsSchema, prefsSchema}
+// tasks //
+interface zoomDataInnerSchema {
+    id: string,
+    pwd: string
+}
+
+interface zoomDataSchema {
+    name: string,
+    data: zoomDataInnerSchema
+}
+
+interface tasksSchema {
+    name: string,
+    start: string,
+    end: string,
+    zoom_data: zoomDataSchema
+}
+
+interface groupSchema {
+    group: string,
+    tasks: tasksSchema
+}
+
+interface tasksSchema {
+    groups: groupSchema
+}
+
+export type settings = settingsSchema;
+export type prefs = prefsSchema;
+export type tasks = tasksSchema;

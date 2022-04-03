@@ -1,5 +1,6 @@
 {
   "dependencies": {
-    "@tauri-apps/api": "^1.0.0-rc.3"
+    "@tauri-apps/api": "^1.0.0-rc.3",
+    "use-state-with-callback": "^2.0.3"
   }
 }

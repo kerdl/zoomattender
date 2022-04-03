@@ -13,11 +13,10 @@ import {
   ScrollArea
 } from '@mantine/core';
 import React, { useState } from 'react';
-import {settingsSchema} from './JsonSchemas'
+import {settings} from './JsonSchemas';
 
 
 const ResetConfirm = function ResetConfirm(props: any) {
-  console.log(settingsSchema.tasks.api_url)
   return (
     <Modal
       centered
@@ -43,15 +42,21 @@ const ResetConfirm = function ResetConfirm(props: any) {
 }
 
 const SettingsWindow = function SettingsWindow(props: any) {
-  const [SettingsApiUrl, setSettingsApiUrl] = useState("");
-  const [SettingsGroup, setSettingsGroup] = useState<string | null>("1КДД22");
-  const [SettingsZoomPath, setSettingsZoomPath] = useState(
-    "%APPDATA%\\Zoom\\bin\\Zoom.exe"
-  );
-  const [SettingsDoRejoin, setSettingsDoRejoin] = useState(true)
-  const [SettingsMaxNoWindows, setSettingsMaxNoWindows] = useState(2)
-  const [killZoomValue, setKillZoomValue] = useState(true)
-  const [showResetConfirm, setShowResetConfirm] = useState(false)
+  let c: settings = props.content;
+  const [settingsApiUrl, setSettingsApiUrl] = useState(c ? c.tasks.api_url : "");
+  const [settingsGroup, setSettingsGroup] = useState<string | null>(c ? c.tasks.group : "");
+  const [settingsZoomPath, setSettingsZoomPath] = useState(c ? c.zoom.zoom_path : "");
+  const [settingsDoRejoin, setSettingsDoRejoin] = useState(c ? c.rejoin.do_rejoin : false);
+  const [settingsMaxNoWindows, setSettingsMaxNoWindows] = useState(c ? c.rejoin.max_no_windows : 0);
+  const [settingsZoomLanguage, setSettingsZoomLanguage] = useState(c ? c.rejoin.zoom_language : "");
+  const [settingsZoomWindnames, setSettingsZoomWindnames] = useState(c ? c.rejoin.zoom_windnames : "");
+  const [settingsRejoinConfirmAwait, setSettingsRejoinConfirmAwait] = useState(c ? c.rejoin.rejoin_confirm_await : 0);
+  const [settingsDoNotRejoinEnd, setSettingsDoNotRejoinEnd] = useState(c ? c.rejoin.do_not_rejoin_end : 0);
+  const [settingsKillZoom, setSettingsKillZoom] = useState(c ? c.conflicts.kill_zoom : false);
+  const [settingsTaskUpdNotify, setSettingsTaskUpdNotify] = useState(c ? c.notifications.task_upd_notify : false);
+  const [settingsQuestionableZoomVariant, setSettingsQuestionableZoomVariant] = useState(c ? c.notifications.questionable_zoom_variant : false);
+
+  const [settingsShowResetConfirm, setSettingsShowResetConfirm] = useState(false)
 
   return (
     <div style={{
@@ -65,127 +70,160 @@ const SettingsWindow = function SettingsWindow(props: any) {
         onClose={() => props.toggleFunc()}
         title="Настройки"
       >
+
         <ScrollArea style={{ height: 420 }}>
           <div 
             style={{
               marginRight: '20px',
               marginLeft: '20px'
             }}>
-          <Divider my="xs" label="Задачи" labelPosition="center" />
-          <TextInput
-            required
-            label="API"
-            value={SettingsApiUrl}
-            error={SettingsApiUrl.length <= 0 ? true : false}
-            onChange={(event) => setSettingsApiUrl(event.currentTarget.value)}>
-          </TextInput>
-          <Space h='sm' />
-          <Select
-            required
-            label="Группа"
-            placeholder="Выбрать"
-            data={[
-              { value: '1КДД20', label: '1КДД20' },
-              { value: '1КДД22', label: '1КДД22' }
-            ]}
-            value={SettingsGroup}
-            error={SettingsGroup == null ? true : false}
-            onChange={(string) => setSettingsGroup(string)}
-          />
-          <Divider my="xs" label="Zoom" labelPosition="center" />
-          <TextInput
-            required
-            label="Путь до Zoom.exe"
-            value={SettingsZoomPath}
-            onChange={(event) => setSettingsZoomPath(event.currentTarget.value)}
-            error={SettingsZoomPath.length <= 0 ? true : false} />
-          <Space h="sm" />
+            <Divider my="xs" label="Задачи" labelPosition="center" />
+            <TextInput
+              required
+              label="API"
+              value={settingsApiUrl}
+              error={settingsApiUrl.length <= 0 ? true : false}
+              onChange={(event) => setSettingsApiUrl(event.currentTarget.value)}
+            />
 
-          <Divider my="xs" label="Перезаход" labelPosition="center" />
-          <Checkbox
-            label="Перезаходить"
-            color="ocean-blue"
-            checked={SettingsDoRejoin}
-            onChange={(event) => setSettingsDoRejoin(event.currentTarget.checked)} />
-          <Space h="sm" />
-          <NumberInput
-            defaultValue={2}
-            error={SettingsDoRejoin == false ? true : false}
-            label="Максимальное время отсутствия окон Zoom"
-            description="в секундах"
-            min={1}
-            stepHoldDelay={500}
-            stepHoldInterval={50}
-            disabled={!SettingsDoRejoin}
-          />
-          <Space h="sm" />
-          <Select
-            label="Язык Zoom"
-            placeholder="Выбрать"
-            data={[
-              { value: 'ru', label: 'Русский' },
-              { value: 'en', label: 'English' }
-            ]}
-            disabled={!SettingsDoRejoin}
-          />
-          <Space h="sm" />
-          <Textarea
-            spellCheck="false"
-            label="Названия окон Zoom"
-            defaultValue={
-              "\"ConfMeetingNotfiyWnd\", \"Connecting\", \"Zoom Meeting\", \"Waiting for Host\""
-            }
-            disabled={!SettingsDoRejoin}>
-          </Textarea>
-          <Space h="sm" />
-          <NumberInput
-            defaultValue={10}
-            label="Сколько ждать подтверждения перезайти"
-            description="в секундах"
-            min={0}
-            stepHoldDelay={500}
-            stepHoldInterval={50}
-            disabled={!SettingsDoRejoin}
-          />
-          <Space h="sm" />
-          <NumberInput
-            noClampOnBlur
-            defaultValue={10}
-            label="За сколько до конца задачи не пытаться перезаходить"
-            description="в минутах"
-            min={1}
-            stepHoldDelay={500}
-            stepHoldInterval={50}
-            disabled={!SettingsDoRejoin}
-          />
+            <Space h='sm' />
 
-          <Divider my="xs" label="Конфликты" labelPosition="center" />
-          <Checkbox
-            label="Убивать Zoom до начала следующей задачи"
-            color="ocean-blue"
-            checked={killZoomValue}
-            onChange={(event) => setKillZoomValue(event.currentTarget.checked)} />
+            <Select
+              required
+              label="Группа"
+              placeholder="Выбрать"
+              data={[
+                { value: '1КДД20', label: '1КДД20' },
+                { value: '1КДД22', label: '1КДД22' }
+              ]}
+              value={settingsGroup}
+              error={settingsGroup == null ? true : false}
+              onChange={(string) => setSettingsGroup(string)}
+            />
+            <Divider my="xs" label="Zoom" labelPosition="center" />
+            <TextInput
+              required
+              label="Путь до Zoom.exe"
+              value={settingsZoomPath}
+              onChange={(event) => setSettingsZoomPath(event.currentTarget.value)}
+              error={settingsZoomPath.length <= 0 ? true : false} 
+            />
+            
+            <Space h="sm" />
 
-          <Divider my="xs" label="Уведомления" labelPosition="center" />
-          <Checkbox
-            defaultChecked
-            label="Уведомлять об обновлении задач"
-            color="ocean-blue" />
+            <Divider my="xs" label="Перезаход" labelPosition="center" />
+            <Checkbox
+              label="Перезаходить"
+              color="ocean-blue"
+              checked={settingsDoRejoin}
+              onChange={(event) => setSettingsDoRejoin(event.currentTarget.checked)} />
+            
+            <Space h="sm" />
 
-          <Space h="xl" />
+            <NumberInput
+              value={settingsMaxNoWindows}
+              onChange={(n) => setSettingsMaxNoWindows(n ? n : 0)}
+              error={settingsMaxNoWindows == null ? true : false}
+              label="Максимальное время отсутствия окон Zoom"
+              description="в секундах"
+              min={1}
+              stepHoldDelay={500}
+              stepHoldInterval={50}
+              disabled={!settingsDoRejoin}
+            />
 
-          <Center>
-            <Button
-              color="red"
-              onClick={() => setShowResetConfirm(true)}>
-              Сбросить настройки
-            </Button>
-          </Center>
+            <Space h="sm" />
 
-          <ResetConfirm
-            opened={showResetConfirm}
-            toggleFunc={setShowResetConfirm}
-          />
+            <Select
+              value = {settingsZoomLanguage}
+              onChange={(s) => setSettingsZoomLanguage(s? s : "")}
+              label="Язык Zoom"
+              placeholder="Выбрать"
+              data={[
+                { value: 'ru', label: 'Русский' },
+                { value: 'en', label: 'English' }
+              ]}
+              disabled={!settingsDoRejoin}
+            />
+
+            <Space h="sm" />
+
+            <Textarea
+              value={settingsZoomWindnames}
+              onChange={(event) => setSettingsZoomWindnames(event.currentTarget.value)}
+              spellCheck="false"
+              label="Названия окон Zoom"
+              //defaultValue={
+              //  "\"ConfMeetingNotfiyWnd\", \"Connecting\", \"Zoom Meeting\", \"Waiting for Host\""
+              //}
+              disabled={!settingsDoRejoin}
+            />
+
+            <Space h="sm" />
+
+            <NumberInput
+              value={settingsRejoinConfirmAwait}
+              onChange={(n) => setSettingsRejoinConfirmAwait(n ? n : 0)}
+              label="Сколько ждать подтверждения перезайти"
+              description="в секундах"
+              min={0}
+              stepHoldDelay={500}
+              stepHoldInterval={50}
+              disabled={!settingsDoRejoin}
+            />
+
+            <Space h="sm" />
+
+            <NumberInput
+              value={settingsDoNotRejoinEnd}
+              onChange={(n) => setSettingsDoNotRejoinEnd(n ? n : 0)}
+              noClampOnBlur
+              label="За сколько до конца задачи не пытаться перезаходить"
+              description="в минутах"
+              min={1}
+              stepHoldDelay={500}
+              stepHoldInterval={50}
+              disabled={!settingsDoRejoin}
+            />
+
+            <Divider my="xs" label="Конфликты" labelPosition="center" />
+            <Checkbox
+              checked={settingsKillZoom}
+              onChange={(event) => setSettingsKillZoom(event.currentTarget.checked)}
+              label="Убивать Zoom до начала следующей задачи"
+              color="ocean-blue"
+            />
+
+            <Divider my="xs" label="Уведомления" labelPosition="center" />
+            <Checkbox
+              checked={settingsTaskUpdNotify}
+              onChange={(event) => setSettingsTaskUpdNotify(event.currentTarget.checked)}
+              label="Уведомлять об обновлении задач"
+              color="ocean-blue" 
+            />
+
+            <Space h="sm" />
+
+            <Checkbox
+              checked={settingsQuestionableZoomVariant}
+              onChange={(event) => setSettingsQuestionableZoomVariant(event.currentTarget.checked)}
+              label="Уведомлять о нескольких вариантах Zoom данных"
+              color="ocean-blue" />
+
+            <Space h="xl" />
+
+            <Center>
+              <Button
+                color="red"
+                onClick={() => setSettingsShowResetConfirm(true)}>
+                Сбросить настройки
+              </Button>
+            </Center>
+
+            <ResetConfirm
+              opened={settingsShowResetConfirm}
+              toggleFunc={setSettingsShowResetConfirm}
+            />
         </div>
         </ScrollArea>
         

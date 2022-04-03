@@ -1,7 +1,7 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { invoke } from '@tauri-apps/api/tauri';
-import SettingsWindow from "./SettingsWindow";
-import EditTaskWindow from './EditTaskWindow';
+import { InitialSetupWindow } from './InitialSetupWindow';
+import {Menu} from './Menu';
 import { Adjustments, ArrowUpRight, Refresh, Settings } from 'tabler-icons-react';
 import {
   Text,
@@ -20,27 +20,56 @@ import {
   LoadingOverlay
 
 } from '@mantine/core';
+import {settings, prefs, tasks} from './JsonSchemas';
 
 async function updateRequest() {
   return new Promise(resolve => setTimeout(resolve, 2000, "content"))
 }
 
-var settingsContent = {api_url: "a"}
-var prefsContent = {}
-
 const Main = function Main() {
-  const [isLoading, setIsLoading] = useState(true);
+  const [showInitialSetup, setShowInitialSetup] = useState(false);
   const [updateInProcess, setUpdateInProcess] = useState(false);
-  const [settingsOpened, setSettingsOpened] = useState(false);
-  const [editOpened, setEditOpened] = useState(false);
+  const [tasksContent, setTasksContent] = useState<null | tasks>(null);
+  const [settingsContent, setSettingsContent] = useState<null | settings>(null);
+  const [prefsContent, setPrefsContent] = useState<null | prefs>(null);
 
-  async function loadConfig() {
-    settingsContent = JSON.parse(await invoke('load_settings'))
-    prefsContent = JSON.parse(await invoke('load_prefs'))
-    setIsLoading(false)
-  };
+  useEffect(() => {
+    async function fetchTasks() {
+      if (settingsContent) {
+        const _data = await fetch(settingsContent.tasks.api_url);
+        const _json = await _data.json()
+        setTasksContent(_json);
+      }
+    }
+    fetchTasks();
+  }, [settingsContent])
+  
+  useEffect(() => {
+    async function LoadSettings() {
+      const _s = await invoke('load_settings');
+      if (typeof _s == 'string') {
+        const _json = JSON.parse(_s);
+        setSettingsContent(_json);
+        if (
+          _json && 
+          (!_json.tasks.group || 
+          !_json.rejoin.zoom_language ||
+          !_json.rejoin.zoom_windnames))
+          setShowInitialSetup(true);
+      }
+    }
 
-  loadConfig();
+    async function loadPrefs() {
+      const _p = await invoke('load_prefs');
+      if (typeof _p == 'string') {
+        setPrefsContent(JSON.parse(_p));
+      }
+    }
+
+    LoadSettings();
+    loadPrefs();
+  
+  }, [])
 
   const updateButton = <Button
     variant="gradient"
@@ -54,114 +83,23 @@ const Main = function Main() {
     Обновить задачи
   </Button>
 
-  const tableEdit = <ActionIcon
-    variant="outline"
-    size="xs"
-    style={{ height: '20px', width: '30px' }}
-    color='blue'
-    onClick={() => setEditOpened(true)}>
-    <Adjustments size={15} />
-  </ActionIcon>
-
-  const attendCheckbox = [
-    <Tooltip label="Посетить">
-      <Checkbox
-        defaultChecked
-        color="ocean-blue" />
-    </Tooltip>
-  ]
-  const elements = [
-    { name: '1 пиздострадание Соси А.А.', time: '12:10 - 12:10' },
-    { name: '2 пиздострадание Соси А.Б.', time: '12:10 - 12:10' },
-    { name: '3 пиздострадание Соси А.В.', time: '12:10 - 12:10' },
-    { name: '4 пиздострадание Соси А.Г.', time: '12:10 - 12:10' },
-    { name: '5 пиздострадание Соси А.Д.', time: '12:10 - 12:10' },
-    { name: '6 пиздострадание Соси А.Д.', time: '12:10 - 12:10' },
-    { name: '7 пиздострадание Соси А.Д.', time: '12:10 - 12:10' },
-  ];
-
-  const rows = elements.map((element) => (
-    <tr key={element.name}>
-      <td>{attendCheckbox}</td>
-      <td>{element.name}</td>
-      <td>{element.time}</td>
-      <td>
-        <div style={{
-          display: 'flex',
-          justifyContent: 'center',
-          alignItems: 'center'
-        }}>{tableEdit}
-        </div>
-      </td>
-    </tr>
-  ));
-
   return (
-    <div style={{
-      display: 'flex',
-      justifyContent: 'center',
-      alignItems: 'center',
-      height: '100vh'
-    }}>
+    <>
       <LoadingOverlay 
-        visible={isLoading} 
+        visible={settingsContent && prefsContent && tasksContent ? false : true}
         overlayOpacity={1} 
         overlayColor="#1e1e1e"/>
       <div>
-        <div style={{ display: 'flex', flexDirection: 'row' }}>
-          {updateButton}
-          <Space w='xl' />
-          <Checkbox
-            label={<Text size="md">Обновлять автоматически</Text>}
-            color="ocean-blue"
-          />
-        </div>
-        <Space h='xl' />
-        <ScrollArea style={{ height: 250 }}>
-          <Table highlightOnHover>
-            <thead>
-              <tr>
-                <th>{attendCheckbox}</th>
-                <th>Имя</th>
-                <th>Время</th>
-                <th>Изменить</th>
-              </tr>
-            </thead>
-            <tbody>{rows}</tbody>
-          </Table>
-        </ScrollArea>
-        <Space h='sm' />
-        <Center>
-          <Button
-            variant="outline"
-            compact
-            leftIcon={<ArrowUpRight />}
-            onClick={() => invoke('open_scheduler')}>
-          Открыть планировщик заданий
-          </Button>
-        </Center>
-        <Space h='sm' />
-        <Center>
-          <Button
-            color={"gray"}
-            leftIcon={<Settings size={20} />}
-            onClick={() => setSettingsOpened(true)}>
-            Настройки
-          </Button>
-        </Center>
-        <SettingsWindow
-          opened={settingsOpened}
-          toggleFunc={setSettingsOpened}
-        />
-        <EditTaskWindow
-          opened={editOpened}
-          toggleFunc={setEditOpened}
-        />
+        {showInitialSetup && <InitialSetupWindow 
+          tasks={tasksContent} 
+          toggleFunc={setShowInitialSetup}/>}
+        {!showInitialSetup && <Menu 
+          settingsContent={settingsContent}/>}
       </div>
-    </div>
+    </>
 
 
   );
 }
 
-export default Main;
+export {Main};

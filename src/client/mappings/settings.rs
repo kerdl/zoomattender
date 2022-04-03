@@ -14,11 +14,11 @@ pub struct Conflicts {
 #[derive(Serialize, Deserialize, Debug, Clone)]
 pub struct Rejoin {
     pub do_rejoin: bool,
-    pub max_nowindows: u32,
+    pub max_no_windows: u32,
     pub zoom_language: Option<String>,
     pub zoom_windnames: Option<String>,
     pub rejoin_confirm_await: u32,
-    pub donot_rejoin_end: u32
+    pub do_not_rejoin_end: u32
 }
 
 #[derive(Serialize, Deserialize, Debug, Clone)]

@@ -19,11 +19,11 @@ impl Settings {
             },
             rejoin: Rejoin {
                 do_rejoin: true,
-                max_nowindows: 2,
+                max_no_windows: 2,
                 zoom_language: None,
                 zoom_windnames: None,
                 rejoin_confirm_await: 10,
-                donot_rejoin_end: 10
+                do_not_rejoin_end: 10
             },
             conflicts: Conflicts {
                 kill_zoom: true
