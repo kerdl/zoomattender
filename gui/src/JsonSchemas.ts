@@ -2,7 +2,7 @@
 interface settingsSchema {
     tasks: {
       api_url: string,
-      group: null
+      group: string | null
     },
     zoom: {
       zoom_path: string
@@ -10,8 +10,7 @@ interface settingsSchema {
     rejoin: {
       do_rejoin: boolean,
       max_no_windows: number,
-      zoom_language: string,
-      zoom_windnames: string,
+      zoom_language: string | null,
       rejoin_confirm_await: number,
       do_not_rejoin_end: number
     },

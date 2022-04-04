@@ -21,10 +21,7 @@ import {
 
 } from '@mantine/core';
 import {settings, prefs, tasks} from './JsonSchemas';
-
-async function updateRequest() {
-  return new Promise(resolve => setTimeout(resolve, 2000, "content"))
-}
+import { updateRequest } from './BackendHelpers';
 
 const Main = function Main() {
   const [showInitialSetup, setShowInitialSetup] = useState(false);
@@ -32,6 +29,7 @@ const Main = function Main() {
   const [tasksContent, setTasksContent] = useState<null | tasks>(null);
   const [settingsContent, setSettingsContent] = useState<null | settings>(null);
   const [prefsContent, setPrefsContent] = useState<null | prefs>(null);
+  const [windnamesContent, setWindnamesContent] = useState<null | any>(null);
 
   useEffect(() => {
     async function fetchTasks() {
@@ -39,6 +37,7 @@ const Main = function Main() {
         const _data = await fetch(settingsContent.tasks.api_url);
         const _json = await _data.json()
         setTasksContent(_json);
+        console.log('Tasks fetched');
       }
     }
     fetchTasks();
@@ -50,11 +49,11 @@ const Main = function Main() {
       if (typeof _s == 'string') {
         const _json = JSON.parse(_s);
         setSettingsContent(_json);
+        console.log('Settings loaded');
         if (
           _json && 
           (!_json.tasks.group || 
-          !_json.rejoin.zoom_language ||
-          !_json.rejoin.zoom_windnames))
+          !_json.rejoin.zoom_language))
           setShowInitialSetup(true);
       }
     }
@@ -66,8 +65,17 @@ const Main = function Main() {
       }
     }
 
+    async function loadWindnames() {
+      const _w = await invoke('load_windnames');
+      if (typeof _w == 'string') {
+        setWindnamesContent(JSON.parse(_w));
+        console.log('Windnames loaded');
+      }
+    }
+
     LoadSettings();
     loadPrefs();
+    loadWindnames();
   
   }, [])
 
@@ -92,9 +100,14 @@ const Main = function Main() {
       <div>
         {showInitialSetup && <InitialSetupWindow 
           tasks={tasksContent} 
-          toggleFunc={setShowInitialSetup}/>}
+          toggleFunc={setShowInitialSetup}
+          langs={windnamesContent}
+          settingsContent={settingsContent}
+          setSettingsContent={setSettingsContent}
+          setShowInitialSetup={setShowInitialSetup}/>}
         {!showInitialSetup && <Menu 
-          settingsContent={settingsContent}/>}
+          settingsContent={settingsContent}
+          setShowInitialSetup={setShowInitialSetup}/>}
       </div>
     </>
 

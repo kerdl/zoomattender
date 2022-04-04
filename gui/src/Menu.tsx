@@ -20,10 +20,9 @@ import {
 } from '@mantine/core';
 import SettingsWindow from "./SettingsWindow";
 import EditTaskWindow from './EditTaskWindow';
+import { updateRequest } from './BackendHelpers';
 
-async function updateRequest() {
-    return new Promise(resolve => setTimeout(resolve, 2000, "content"))
-}
+
 
 const Menu = function Menu(props: any) {
     const [updateInProcess, setUpdateInProcess] = useState(false);
@@ -138,6 +137,7 @@ const Menu = function Menu(props: any) {
             opened={settingsOpened}
             toggleFunc={setSettingsOpened}
             content={props.settingsContent}
+            setShowInitialSetup={props.setShowInitialSetup}
           />}
           <EditTaskWindow
             opened={editOpened}

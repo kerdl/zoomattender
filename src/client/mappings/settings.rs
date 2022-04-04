@@ -16,7 +16,6 @@ pub struct Rejoin {
     pub do_rejoin: bool,
     pub max_no_windows: u32,
     pub zoom_language: Option<String>,
-    pub zoom_windnames: Option<String>,
     pub rejoin_confirm_await: u32,
     pub do_not_rejoin_end: u32
 }
@@ -39,4 +38,32 @@ pub struct Settings {
     pub rejoin: Rejoin,
     pub conflicts: Conflicts,
     pub notifications: Notifications
+}
+
+impl Settings {
+    pub fn default() -> Self {
+        Settings {
+            tasks: Tasks {
+                api_url: "https://api.npoint.io/3c76aea653761267e1f2".to_string(),
+                group: None
+            },
+            zoom: Zoom {
+                zoom_path: "%APPDATA%\\Zoom\\bin\\Zoom.exe".to_string(),
+            },
+            rejoin: Rejoin {
+                do_rejoin: true,
+                max_no_windows: 2,
+                zoom_language: None,
+                rejoin_confirm_await: 10,
+                do_not_rejoin_end: 10
+            },
+            conflicts: Conflicts {
+                kill_zoom: true
+            },
+            notifications: Notifications {
+                task_upd_notify: false,
+                questionable_zoom_variant: true
+            }
+        }
+    }
 }

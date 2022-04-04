@@ -14,6 +14,7 @@ import {
 } from '@mantine/core';
 import React, { useState } from 'react';
 import {settings} from './JsonSchemas';
+import { invoke } from '@tauri-apps/api/tauri';
 
 
 const ResetConfirm = function ResetConfirm(props: any) {
@@ -33,7 +34,11 @@ const ResetConfirm = function ResetConfirm(props: any) {
       <Center>
         <Button
           color="red"
-          onClick={() => props.toggleFunc()}>
+          onClick={() => {
+            invoke('reset_settings'); 
+            console.log('Settings reset'); 
+            props.setShowInitialSetup(true)
+          }}>
           Сбросить
         </Button>
       </Center>
@@ -49,7 +54,7 @@ const SettingsWindow = function SettingsWindow(props: any) {
   const [settingsDoRejoin, setSettingsDoRejoin] = useState(c ? c.rejoin.do_rejoin : false);
   const [settingsMaxNoWindows, setSettingsMaxNoWindows] = useState(c ? c.rejoin.max_no_windows : 0);
   const [settingsZoomLanguage, setSettingsZoomLanguage] = useState(c ? c.rejoin.zoom_language : "");
-  const [settingsZoomWindnames, setSettingsZoomWindnames] = useState(c ? c.rejoin.zoom_windnames : "");
+  //const [settingsZoomWindnames, setSettingsZoomWindnames] = useState(c ? c.rejoin.zoom_windnames : "");
   const [settingsRejoinConfirmAwait, setSettingsRejoinConfirmAwait] = useState(c ? c.rejoin.rejoin_confirm_await : 0);
   const [settingsDoNotRejoinEnd, setSettingsDoNotRejoinEnd] = useState(c ? c.rejoin.do_not_rejoin_end : 0);
   const [settingsKillZoom, setSettingsKillZoom] = useState(c ? c.conflicts.kill_zoom : false);
@@ -149,8 +154,8 @@ const SettingsWindow = function SettingsWindow(props: any) {
             <Space h="sm" />
 
             <Textarea
-              value={settingsZoomWindnames}
-              onChange={(event) => setSettingsZoomWindnames(event.currentTarget.value)}
+              //value={settingsZoomWindnames}
+              //onChange={(event) => setSettingsZoomWindnames(event.currentTarget.value)}
               spellCheck="false"
               label="Названия окон Zoom"
               //defaultValue={
@@ -223,6 +228,7 @@ const SettingsWindow = function SettingsWindow(props: any) {
             <ResetConfirm
               opened={settingsShowResetConfirm}
               toggleFunc={setSettingsShowResetConfirm}
+              setShowInitialSetup={props.setShowInitialSetup}
             />
         </div>
         </ScrollArea>

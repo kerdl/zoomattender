@@ -21,8 +21,10 @@ import {
     Group,
     TextInput
   } from '@mantine/core';
-  import {useState} from 'react';
-  import {ArrowRight} from 'tabler-icons-react';
+  import { useState } from 'react';
+  import { ArrowRight } from 'tabler-icons-react';
+  import { getLanguages } from './BackendHelpers';
+
 
 function EnterZoomLanguageFrame(props: any) {
     return (
@@ -39,22 +41,18 @@ function EnterZoomLanguageFrame(props: any) {
           value={props.settingsZoomLanguage}
           onChange={(v) => props.setSettingsZoomLanguage(v)}
           placeholder="Язык Zoom"
-          data={[
-            { value: 'ru', label: 'Русский' },
-            { value: 'en', label: 'English' }
-          ]}
+          data={getLanguages(props.langs)}
+          disabled={!props.settingsDoRejoin}
         />
         </Container>
         <Space h='sm' />
         <Center>
-          <Button 
-              compact 
+          <Checkbox 
               color="gray" 
-              variant="subtle"
-              onClick={() => props.nextStep()}
-          >
-          Не перезаходить в Zoom
-          </Button>
+              label="Не перезаходить в Zoom"
+              checked={!props.settingsDoRejoin}
+              onChange={(e) => props.setSettingsDoRejoin(!e.currentTarget.checked)}
+          />
         </Center>
         
       </div>

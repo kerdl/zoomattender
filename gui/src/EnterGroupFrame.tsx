@@ -20,16 +20,9 @@ import {
   Group,
   TextInput
 } from '@mantine/core';
-import {useState} from 'react';
-import {ArrowRight} from 'tabler-icons-react';
-
-function getAllGroups(groups: any) {
-  let result = [];
-  for (let i in groups) {
-      result.push(groups[i].group);
-  }
-  return result; 
-}
+import { useState } from 'react';
+import { ArrowRight } from 'tabler-icons-react';
+import { getAllGroups } from './BackendHelpers';
 
 function EditGroupFrame(props: any) {
     function switchGroupInput() {

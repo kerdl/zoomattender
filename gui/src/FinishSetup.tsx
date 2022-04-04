@@ -23,24 +23,34 @@ import {
 } from '@mantine/core';
 import {useState} from 'react';
 import {ArrowRight} from 'tabler-icons-react';
+import {saveSettings} from './BackendHelpers';
 
 function FinishSetup(props: any) {
     return (
       <Container>
-        <Text
+        {props.allDone ? <Text
           color="gray"
           align='center'>
           На всякий случай чекни 
           потом остальные настройки,
           вдруг чё хочешь изменить
-        </Text>
-        <Space h={20} />
-        <Center>
+        </Text> : <Text
+          color="gray"
+          align='center'>
+          Не все пункты установлены,
+          проверь всё ещё раз
+        </Text>}
+        {props.allDone && <Space h={20} />}
+        {props.allDone && <Center>
           <Button 
-            onClick={() => props.toggleFunc()}>
+            onClick={() => {
+              props.toggleFunc(); 
+              props.setSettingsContent(props.modifiedContent);
+              saveSettings(props.modifiedContent);
+            }}>
             Завершить
           </Button>
-        </Center>
+        </Center>}
       </Container>
     );
 }

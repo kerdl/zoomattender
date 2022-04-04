@@ -22,20 +22,43 @@ import {
     TextInput
 } from '@mantine/core';
 import {useState} from 'react';
-import {ArrowRight} from 'tabler-icons-react';
+import {ArrowRight, CircleX} from 'tabler-icons-react';
 import { EditGroupFrame } from './EnterGroupFrame';
 import { EnterZoomLanguageFrame } from './EnterZoomLanguageFrame';
 import { FinishSetup } from './FinishSetup';
+import { settings } from './JsonSchemas';
 
+function modifySettings(
+    original: settings, 
+    group: string | null, 
+    zoomLanguage: string | null, 
+    doRejoin: boolean
+) {
+    original.tasks.group = group;
+    original.rejoin.zoom_language = zoomLanguage;
+    original.rejoin.do_rejoin = doRejoin;
+    return original
+}
 
 const InitialSetupWindow = function InitialSetupWindow(props: any) {
     const [settingsGroupSelect, setSettingsGroupSelect] = useState<null | string>("");
     const [settingsGroupType, setSettingsGroupType] = useState<null | string>(null);
     const [settingsZoomLanguage, setSettingsZoomLanguage] = useState<null | string>("ru");
+    const [settingsDoRejoin, setSettingsDoRejoin] = useState(true);
 
     const [active, setActive] = useState(0);
     const nextStep = () => setActive((current) => (current < 2 ? current + 1 : current));
     const prevStep = () => setActive((current) => (current > 0 ? current - 1 : current));
+
+    //let result = [];
+    //let langKeys = Object.keys(props.langs);
+    //for (const lang in langKeys) {
+    //    let _json: any = {};
+    //    _json.value = langKeys[lang];
+    //    _json.label = props.langs[langKeys[lang]].label;
+    //    result.push(_json);
+    //}
+    if (props.langs && settingsZoomLanguage) console.log(props.langs[settingsZoomLanguage].label);
 
     return (
       <>
@@ -44,7 +67,14 @@ const InitialSetupWindow = function InitialSetupWindow(props: any) {
             active={active} 
             onStepClick={setActive} 
           >
-            <Stepper.Step label="Группа">
+            <Stepper.Step 
+              label="Группа" 
+              description={
+                settingsGroupSelect ? 
+                settingsGroupSelect?.substring(6, 0) : 
+                settingsGroupType?.substring(6, 0)}
+              color={!settingsGroupSelect && !settingsGroupType ? "red" : "blue"}
+              completedIcon={!settingsGroupSelect && !settingsGroupType ? <CircleX /> : null}>
               <Space h={80}/>
               <EditGroupFrame 
                 tasks={props.tasks}
@@ -53,16 +83,40 @@ const InitialSetupWindow = function InitialSetupWindow(props: any) {
                 setSettingsGroupSelect={setSettingsGroupSelect}
                 setSettingsGroupType={setSettingsGroupType} />
             </Stepper.Step>
-            <Stepper.Step label="Язык Zoom">
+            <Stepper.Step 
+              label="Язык Zoom"
+              description={
+                props.langs && settingsZoomLanguage && settingsDoRejoin ? 
+                props.langs[settingsZoomLanguage].label : "Откл."
+              }
+              color={settingsDoRejoin && !settingsZoomLanguage ? "red" : "blue"}
+              completedIcon={settingsDoRejoin && !settingsZoomLanguage ? <CircleX /> : null}>
               <Space h={80}/>
               <EnterZoomLanguageFrame 
                 nextStep={nextStep}
                 settingsZoomLanguage={settingsZoomLanguage}
-                setSettingsZoomLanguage={setSettingsZoomLanguage} />
+                setSettingsZoomLanguage={setSettingsZoomLanguage} 
+                settingsDoRejoin={settingsDoRejoin}
+                setSettingsDoRejoin={setSettingsDoRejoin}
+                langs={props.langs}/>
             </Stepper.Step>
             <Stepper.Completed>
               <Space h={90}/>
-              <FinishSetup toggleFunc={props.toggleFunc}/>
+              <FinishSetup 
+                toggleFunc={props.toggleFunc}
+                modifiedContent={modifySettings(
+                  props.settingsContent, 
+                  settingsGroupSelect ? settingsGroupSelect : settingsGroupType, 
+                  settingsZoomLanguage, 
+                  settingsDoRejoin
+                )}
+                setSettingsContent={props.setSettingsContent}
+                setShowInitialSetup={props.setShowInitialSetup}
+                allDone={
+                  (settingsGroupSelect || settingsGroupType) 
+                  && 
+                  (settingsZoomLanguage || !settingsDoRejoin)}
+              />
             </Stepper.Completed>
           </Stepper>
           <Center>

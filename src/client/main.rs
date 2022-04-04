@@ -8,13 +8,13 @@ pub mod scheduler;
 pub mod task;
 pub mod mappings;
 pub mod local_fs;
-pub mod settings;
 pub mod pref_variants;
 
 use lazy_static::lazy_static;
 use app::window;
 use mappings::settings::Settings;
 use mappings::pref_variants::PrefVariants;
+use mappings::windnames::Windnames;
 
 type Result<T> = std::result::Result<T, Box<dyn std::error::Error>>;
 
@@ -22,6 +22,7 @@ const TASKS_PATH: &str = "\\ZoomAttender";
 const DATA_FOLDER: &str = "zoomattender_data";
 const SETTINGS_FILE: &str = "settings.json";
 const PREFS_FILE: &str = "prefs.json";
+const WINDNAMES_FILE: &str = "windnames.json";
 
 lazy_static! {
     static ref ABSOLUTE_DATA_FOLDER: std::path::PathBuf = {
@@ -50,12 +51,19 @@ fn main() -> Result<()> {
         local_fs::default_json(PREFS_FILE, PrefVariants::default())?;
     }
 
+    if !ABSOLUTE_DATA_FOLDER.join(WINDNAMES_FILE).exists() {
+        local_fs::default_json(WINDNAMES_FILE, Windnames::default())?;
+    }
+
     tauri::Builder::default()
         .invoke_handler(tauri::generate_handler![
             gui::open_scheduler,
             gui::load_settings,
+            gui::save_settings,
+            gui::reset_settings,
             gui::load_prefs,
-            gui::save_settings
+            gui::save_prefs,
+            gui::load_windnames
         ])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");
