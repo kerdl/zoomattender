@@ -22,7 +22,7 @@ import {
     TextInput
   } from '@mantine/core';
   import { useState } from 'react';
-  import { ArrowRight } from 'tabler-icons-react';
+  import { Language } from 'tabler-icons-react';
   import { getLanguages } from './BackendHelpers';
 
 
@@ -38,6 +38,7 @@ function EnterZoomLanguageFrame(props: any) {
         <Space h='sm' />
         <Container size={300}>
         <Select
+          icon={<Language size={18} />}
           value={props.settingsZoomLanguage}
           onChange={(v) => props.setSettingsZoomLanguage(v)}
           placeholder="Язык Zoom"

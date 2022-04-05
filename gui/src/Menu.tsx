@@ -15,7 +15,8 @@ import {
     Tooltip,
     Center,
     MantineProvider,
-    LoadingOverlay
+    LoadingOverlay,
+    Transition
   
 } from '@mantine/core';
 import SettingsWindow from "./SettingsWindow";
@@ -91,6 +92,20 @@ const Menu = function Menu(props: any) {
         alignItems: 'center',
         height: '100vh'
       }}>
+        {props.settingsContent && <SettingsWindow
+          settingsOpened={settingsOpened}
+          setSettingsOpened={setSettingsOpened}
+          content={props.settingsContent}
+          setContent={props.setSettingsContent}
+          tasks={props.tasks}
+          setTasks={props.setTasks}
+          setShowInitialSetup={props.setShowInitialSetup}
+        />}
+
+        <EditTaskWindow
+          opened={editOpened}
+          toggleFunc={setEditOpened}
+        />
         <div>
           <div style={{ display: 'flex', flexDirection: 'row' }}>
             {updateButton}
@@ -129,20 +144,10 @@ const Menu = function Menu(props: any) {
             <Button
               color={"gray"}
               leftIcon={<Settings size={20} />}
-              onClick={() => setSettingsOpened(true)}>
+              onClick={() => setSettingsOpened((s) => !s)}>
               Настройки
             </Button>
           </Center>
-          {props.settingsContent && <SettingsWindow
-            opened={settingsOpened}
-            toggleFunc={setSettingsOpened}
-            content={props.settingsContent}
-            setShowInitialSetup={props.setShowInitialSetup}
-          />}
-          <EditTaskWindow
-            opened={editOpened}
-            toggleFunc={setEditOpened}
-          />
         </div>
       </div>
     );

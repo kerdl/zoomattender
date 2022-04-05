@@ -9,6 +9,7 @@ interface settingsSchema {
     },
     rejoin: {
       do_rejoin: boolean,
+      do_not_watch: number,
       max_no_windows: number,
       zoom_language: string | null,
       rejoin_confirm_await: number,

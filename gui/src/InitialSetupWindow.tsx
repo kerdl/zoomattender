@@ -21,12 +21,13 @@ import {
     Container,
     TextInput
 } from '@mantine/core';
-import {useState} from 'react';
-import {ArrowRight, CircleX} from 'tabler-icons-react';
+import { useState, useEffect } from 'react';
+import { CircleX } from 'tabler-icons-react';
 import { EditGroupFrame } from './EnterGroupFrame';
 import { EnterZoomLanguageFrame } from './EnterZoomLanguageFrame';
 import { FinishSetup } from './FinishSetup';
-import { settings } from './JsonSchemas';
+import { settings, tasks } from './JsonSchemas';
+import { fetchTasks } from './BackendHelpers';
 
 function modifySettings(
     original: settings, 
@@ -50,15 +51,12 @@ const InitialSetupWindow = function InitialSetupWindow(props: any) {
     const nextStep = () => setActive((current) => (current < 2 ? current + 1 : current));
     const prevStep = () => setActive((current) => (current > 0 ? current - 1 : current));
 
-    //let result = [];
-    //let langKeys = Object.keys(props.langs);
-    //for (const lang in langKeys) {
-    //    let _json: any = {};
-    //    _json.value = langKeys[lang];
-    //    _json.label = props.langs[langKeys[lang]].label;
-    //    result.push(_json);
-    //}
-    if (props.langs && settingsZoomLanguage) console.log(props.langs[settingsZoomLanguage].label);
+    useEffect(() => {
+      if (props.settingsContent && !props.tasksContent) { 
+        fetchTasks(props.settingsContent.tasks.api_url)
+          .then(tasks => {props.setTasksContent(tasks)})
+      }
+    }, [props.settingsContent])
 
     return (
       <>
@@ -77,7 +75,7 @@ const InitialSetupWindow = function InitialSetupWindow(props: any) {
               completedIcon={!settingsGroupSelect && !settingsGroupType ? <CircleX /> : null}>
               <Space h={80}/>
               <EditGroupFrame 
-                tasks={props.tasks}
+                tasks={props.tasksContent}
                 settingsGroupSelect={settingsGroupSelect}
                 settingsGroupType={settingsGroupType}
                 setSettingsGroupSelect={setSettingsGroupSelect}

@@ -14,6 +14,7 @@ pub struct Conflicts {
 #[derive(Serialize, Deserialize, Debug, Clone)]
 pub struct Rejoin {
     pub do_rejoin: bool,
+    pub do_not_watch: u32,
     pub max_no_windows: u32,
     pub zoom_language: Option<String>,
     pub rejoin_confirm_await: u32,
@@ -52,6 +53,7 @@ impl Settings {
             },
             rejoin: Rejoin {
                 do_rejoin: true,
+                do_not_watch: 20,
                 max_no_windows: 2,
                 zoom_language: None,
                 rejoin_confirm_await: 10,

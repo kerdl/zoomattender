@@ -1,6 +1,7 @@
 {
   "dependencies": {
     "@tauri-apps/api": "^1.0.0-rc.3",
+    "framer-motion": "^6.2.8",
     "use-state-with-callback": "^2.0.3"
   }
 }
