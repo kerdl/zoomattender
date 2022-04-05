@@ -33,5 +33,5 @@ pub struct Group {
 
 #[derive(Deserialize, Debug)]
 pub struct Groups {
-    pub groups: Vec<Task>
+    pub groups: Vec<Group>
 }

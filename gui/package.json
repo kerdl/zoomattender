@@ -5,7 +5,8 @@
   "dependencies": {
     "@mantine/core": "^4.0.8",
     "@mantine/dates": "^4.1.0",
-    "@mantine/hooks": "^4.0.8",
+    "@mantine/hooks": "^4.1.2",
+    "@mantine/notifications": "^4.1.2",
     "@tauri-apps/api": "^1.0.0-rc.3",
     "@testing-library/jest-dom": "^5.16.3",
     "@testing-library/react": "^12.1.4",

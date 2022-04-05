@@ -23,6 +23,7 @@ import {
     AutocompleteProps,
     TextInput
 } from '@mantine/core';
+import { NotificationsProvider } from '@mantine/notifications';
 import { BorderRadius, Check, X } from 'tabler-icons-react';
 import { tasks } from './JsonSchemas';
 import { getAllGroups } from './BackendHelpers';
@@ -31,11 +32,14 @@ import { validGroup } from './Strings';
 interface GroupInputProps {
     tasks: tasks,
     value: string,
+    putError: boolean,
     onChange: (value: string) => void,
+    onClick?: () => void,
     label?: string
     icon?: any
 }
 function GroupInput(props: GroupInputProps) {
+
     return (
       <Autocomplete
         required
@@ -45,11 +49,14 @@ function GroupInput(props: GroupInputProps) {
         onChange={(v) => {
         props.onChange(validGroup(v));
         }}
-        error={props.value ? props.value.length < 6 : false}
+        onClick={props.onClick}
+        error={props.putError && (!props.value || props.value.length) < 6 ? true : false}
         placeholder={props.tasks ? "Группа" : "Получение..."}
         label={props.label}
       />
   );
 }
+
+function Notify() {}
 
 export { GroupInput };

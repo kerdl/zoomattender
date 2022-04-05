@@ -6,7 +6,9 @@ use windows::{
     Win32::System::{
         Com::{
             VARIANT,
-            COINIT_MULTITHREADED,
+            // tauri crashes with multithreaded
+            //COINIT_MULTITHREADED,
+            COINIT_APARTMENTTHREADED,
             CLSCTX_ALL,
             CoCreateInstance,
             CoInitializeEx
@@ -47,7 +49,7 @@ pub struct Scheduler {
 impl Scheduler {
     pub fn new() -> Result<Self> {
         unsafe {
-            CoInitializeEx(std::ptr::null_mut(), COINIT_MULTITHREADED)?;
+            CoInitializeEx(std::ptr::null_mut(), COINIT_APARTMENTTHREADED)?;
             let service: ITaskService = CoCreateInstance(
                 &TaskScheduler, 
                 None, 

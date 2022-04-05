@@ -38,6 +38,7 @@ function EditGroupFrame(props: any) {
         <Space h='sm' />
         <Center>
           <GroupInput 
+            putError={false}
             icon={<Sausage size={18} />}
             tasks={props.tasks} 
             value={props.settingsGroupType} 

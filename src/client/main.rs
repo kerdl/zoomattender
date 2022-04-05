@@ -5,7 +5,7 @@
 
 pub mod gui;
 pub mod scheduler;
-pub mod task;
+pub mod tasks;
 pub mod mappings;
 pub mod local_fs;
 pub mod pref_variants;
@@ -39,6 +39,11 @@ lazy_static! {
 
 fn main() -> Result<()> {
 
+    let scheduler = scheduler::Scheduler::new()?;
+    if !scheduler.folder_exists(TASKS_PATH) {
+        scheduler.make_folder(TASKS_PATH)?;
+    }
+
     if !ABSOLUTE_DATA_FOLDER.exists() {
         std::fs::create_dir(ABSOLUTE_DATA_FOLDER.to_str().unwrap())?;
     }
@@ -58,6 +63,7 @@ fn main() -> Result<()> {
     tauri::Builder::default()
         .invoke_handler(tauri::generate_handler![
             gui::open_scheduler,
+            gui::update_tasks,
             gui::load_settings,
             gui::save_settings,
             gui::reset_settings,

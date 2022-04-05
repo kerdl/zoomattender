@@ -19,9 +19,11 @@ import {
     Transition
   
 } from '@mantine/core';
+import { X } from 'tabler-icons-react';
+import { showNotification } from '@mantine/notifications';
 import SettingsWindow from "./SettingsWindow";
 import EditTaskWindow from './EditTaskWindow';
-import { updateRequest } from './BackendHelpers';
+import { updateRequest, fetchTasks } from './BackendHelpers';
 
 
 
@@ -29,6 +31,22 @@ const Menu = function Menu(props: any) {
     const [updateInProcess, setUpdateInProcess] = useState(false);
     const [editOpened, setEditOpened] = useState(false);
     const [settingsOpened, setSettingsOpened] = useState(false);
+
+    function _fetchTasks() {
+      fetchTasks(props.settingsContent.tasks.api_url)
+        .then(data => props.setTasks(data));
+    }
+
+    useEffect(() => {
+      if (updateInProcess) {
+        console.log(props.settingsContent.tasks.group);
+        invoke('update_tasks', {
+          tasks: JSON.stringify(props.tasks), 
+          group: props.settingsContent.tasks.group
+        });
+        setUpdateInProcess((o) => !o);
+      }
+    }, [props.tasks])
 
     const attendCheckbox = [
       <Tooltip label="Посетить" key="attendCheckboxTooltip">
@@ -79,9 +97,9 @@ const Menu = function Menu(props: any) {
       loading={updateInProcess}
       leftIcon={<Refresh size={20} />}
       onClick={async () => {
-        setUpdateInProcess((o) => !o); 
-        await updateRequest();
-        setUpdateInProcess((o) => !o); }}>
+        setUpdateInProcess((o) => !o);
+        _fetchTasks();
+      }}>
       Обновить задачи
     </Button>
 

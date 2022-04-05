@@ -3,7 +3,8 @@ use crate::{
     ABSOLUTE_DATA_FOLDER,
     SETTINGS_FILE,
     PREFS_FILE,
-    WINDNAMES_FILE
+    WINDNAMES_FILE, 
+    mappings::tasks::Groups
 };
 use windows::{
     Win32::System::{
@@ -17,6 +18,23 @@ use crate::mappings::settings::Settings;
 
 //type Result<T> = std::result::Result<T, Box<dyn std::error::Error>>;
 
+
+#[tauri::command]
+pub fn update_tasks(tasks: String, group: String) {
+    let des: Groups = serde_json::from_str(&tasks).unwrap();
+
+    for g in des.groups {
+        if g.group == group {
+            for t in g.tasks {
+                println!("{}", t.name);
+                println!("{}", t.start);
+                println!("{}", t.end);
+                println!("{:?}", t.zoom_data);
+                t.make();
+            }
+        }
+    }
+}
 
 #[tauri::command]
 pub fn load_settings() -> String {

@@ -21,6 +21,7 @@ import {
   LoadingOverlay
 
 } from '@mantine/core';
+import { NotificationsProvider } from '@mantine/notifications';
 import {settings, prefs, tasks} from './JsonSchemas';
 import { updateRequest, loadSettings, loadPrefs, loadWindnames } from './BackendHelpers';
 
@@ -61,7 +62,7 @@ const Main = function Main() {
   }, [])
 
   return (
-    <>
+    <NotificationsProvider position='top-center' containerWidth={350}>
       <LoadingOverlay 
         visible={settingsContent && prefsContent ? false : true}
         overlayOpacity={1} 
@@ -82,7 +83,7 @@ const Main = function Main() {
           setSettingsContent={setSettingsContent}
           setShowInitialSetup={setShowInitialSetup}/>}
       </div>
-    </>
+    </NotificationsProvider>
 
 
   );

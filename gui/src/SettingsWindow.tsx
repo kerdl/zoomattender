@@ -19,6 +19,7 @@ import {
   Transition,
   Group
 } from '@mantine/core';
+import { showNotification } from '@mantine/notifications';
 import { Api, Sausage, DirectionHorizontal, Language, Clock, Check, X } from 'tabler-icons-react';
 import React, { useEffect, useState } from 'react';
 import { GroupInput } from './CommonElement';
@@ -112,6 +113,12 @@ const SettingsWindow = function SettingsWindow(props: any) {
     setShowGroupType((o) => !o);
   }
 
+  function _fetchTasks() {
+    fetchTasks(settingsApiUrl).then((tasks) => {
+      props.setTasks(tasks);
+    });
+  }
+
   useEffect(() => {
     if (showGroupSelect && !props.tasks) {
       fetchTasks(settingsApiUrl).then((tasks) => {
@@ -153,9 +160,22 @@ const SettingsWindow = function SettingsWindow(props: any) {
     if (required.every(v => v == true)) {
       let newSettings = convertSettings();
       saveSettings(newSettings);
+      props.setContent(newSettings);
+      showNotification({
+        color: 'green',
+        icon: <Check />,
+        autoClose: 3000,
+        message: 'Сохранено',
+      });
     }
+      
     else {
-      setShowNotAllSatisfied(true)
+      showNotification({
+        color: 'red',
+        icon: <X />,
+        autoClose: 3000,
+        message: 'Заполнено не всё',
+      });
     }
   }
 
@@ -183,10 +203,6 @@ const SettingsWindow = function SettingsWindow(props: any) {
       onClose={() => {props.setSettingsOpened(false)}}>
       <Center>
         <Container>
-          <NotAllSatisfied
-            opened={showNotAllSatisfied}
-            closeFunc={setShowNotAllSatisfied}
-          />
           <ScrollArea style={{ height: 370, width: 420 }}>
             <Container
               style={{
@@ -206,10 +222,12 @@ const SettingsWindow = function SettingsWindow(props: any) {
               <Space h='sm' />
 
               <GroupInput
+                putError={true}
                 icon={<Sausage size={18} />}
                 tasks={props.tasks}
                 value={settingsGroupType}
                 onChange={setSettingsGroupType}
+                onClick={() => !props.tasks ? _fetchTasks() : null}
                 label="Группа" />
 
               <Divider my="xs" label="Zoom" labelPosition="center" />
@@ -255,7 +273,7 @@ const SettingsWindow = function SettingsWindow(props: any) {
                 icon={<Clock size={18} />}
                 value={settingsMaxNoWindows}
                 onChange={(n) => setSettingsMaxNoWindows(n ? n : 0)}
-                error={settingsMaxNoWindows == null || settingsMaxNoWindows < 0 ? true : false}
+                error={settingsMaxNoWindows == null || settingsMaxNoWindows <= 0 ? true : false}
                 label="Максимальное время отсутствия окон Zoom"
                 description="в секундах"
                 min={1}
@@ -271,7 +289,7 @@ const SettingsWindow = function SettingsWindow(props: any) {
                 icon={<Clock size={18} />}
                 value={settingsDoNotWatch}
                 onChange={(n) => setSettingsDoNotWatch(n ? n : 0)}
-                error={settingsDoNotWatch == null || settingsDoNotWatch < 0 ? true : false}
+                error={settingsDoNotWatch == null || settingsDoNotWatch <= 0 ? true : false}
                 label="Отсрочка слежения за окнами Zoom"
                 description="в секундах"
                 min={1}
@@ -287,7 +305,7 @@ const SettingsWindow = function SettingsWindow(props: any) {
                 icon={<Clock size={18} />}
                 value={settingsRejoinConfirmAwait}
                 onChange={(n) => setSettingsRejoinConfirmAwait(n ? n : 0)}
-                error={settingsRejoinConfirmAwait == null || settingsRejoinConfirmAwait < 0 ? true : false}
+                error={settingsRejoinConfirmAwait == null || settingsRejoinConfirmAwait <= 0 ? true : false}
                 label="Сколько ждать подтверждения перезайти"
                 description="в секундах"
                 min={0}
@@ -303,7 +321,7 @@ const SettingsWindow = function SettingsWindow(props: any) {
                 icon={<Clock size={18} />}
                 value={settingsDoNotRejoinEnd}
                 onChange={(n) => setSettingsDoNotRejoinEnd(n ? n : 0)}
-                error={settingsDoNotRejoinEnd == null || settingsDoNotRejoinEnd < 0 ? true : false}
+                error={settingsDoNotRejoinEnd == null || settingsDoNotRejoinEnd <= 0 ? true : false}
                 noClampOnBlur
                 label="За сколько до конца не пытаться перезаходить"
                 description="в минутах"
