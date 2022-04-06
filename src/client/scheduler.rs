@@ -6,6 +6,9 @@ use windows::{
     Win32::System::{
         Com::{
             VARIANT,
+            VARIANT_0,
+            VARIANT_0_0,
+            VARIANT_0_0_0,
             // tauri crashes with multithreaded
             //COINIT_MULTITHREADED,
             COINIT_APARTMENTTHREADED,
@@ -28,6 +31,7 @@ use windows::{
             ITriggerCollection,
             //IRegistrationInfo,
             IActionCollection,
+            IRegisteredTaskCollection,
             ITaskSettings, 
         }
     }, core::{Interface}
@@ -101,6 +105,47 @@ impl Scheduler {
                 Ok(_) => true,
                 Err(_) => false
             }
+        }
+    }
+
+    fn task_iter_variant(i: u32) -> VARIANT {
+        VARIANT {
+            Anonymous: VARIANT_0 {
+                Anonymous: std::mem::ManuallyDrop::new(VARIANT_0_0 { 
+                    vt: 4, 
+                    wReserved1: 0, 
+                    wReserved2: 0, 
+                    wReserved3: 0, 
+                    Anonymous: VARIANT_0_0_0 { 
+                        fltVal: i as f32
+                    }
+                })
+            }
+        }
+    }
+
+    pub fn list_tasks(&self, path: &str) -> Result<IRegisteredTaskCollection> {
+        let varin = VARIANT {
+            Anonymous: VARIANT_0 {
+                Anonymous: std::mem::ManuallyDrop::new(VARIANT_0_0 { 
+                    vt: 4, 
+                    wReserved1: 0, 
+                    wReserved2: 0, 
+                    wReserved3: 0, 
+                    Anonymous: VARIANT_0_0_0 { 
+                        fltVal: 1.0 
+                    }
+                })
+            }
+        };
+        unsafe {
+            let folder: ITaskFolder = self.service.GetFolder(BSTR::from(path))?;
+            let tasks = folder.GetTasks(0)?;
+            let count = tasks.Count()?;
+            for t in 0..count {
+
+            }
+            Ok(tasks)
         }
     }
 

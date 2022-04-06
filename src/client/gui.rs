@@ -4,7 +4,11 @@ use crate::{
     SETTINGS_FILE,
     PREFS_FILE,
     WINDNAMES_FILE, 
-    mappings::tasks::Groups
+    mappings::tasks::Groups,
+    mappings::pref_variants::PrefVariants,
+    mappings::settings::Settings,
+    errors::TeacherPrefNotDefined,
+    tasks
 };
 use windows::{
     Win32::System::{
@@ -14,26 +18,33 @@ use windows::{
     }
 };
 use serde_json;
-use crate::mappings::settings::Settings;
 
 //type Result<T> = std::result::Result<T, Box<dyn std::error::Error>>;
 
 
 #[tauri::command]
-pub fn update_tasks(tasks: String, group: String) {
-    let des: Groups = serde_json::from_str(&tasks).unwrap();
-
-    for g in des.groups {
-        if g.group == group {
-            for t in g.tasks {
-                println!("{}", t.name);
-                println!("{}", t.start);
-                println!("{}", t.end);
-                println!("{:?}", t.zoom_data);
-                t.make();
-            }
-        }
+pub fn update_tasks(tasks: String, group: String) -> Result<String, String> {
+    let result = tasks::update_tasks(tasks, group);
+    match result {
+        Ok(Some(tasks)) => return Ok(
+            serde_json::to_string_pretty(&tasks).unwrap()
+        ),
+        Ok(None) => Ok("".to_string()),
+        Err(e) => Err(format!("{}", e))
     }
+}
+
+#[tauri::command]
+pub fn do_automatic_upd() -> bool {
+    true
+}
+
+#[tauri::command]
+pub fn set_automatic_upd(value: bool) -> bool {
+    //let mut settings = Settings::new();
+    //settings.automatic_upd = value;
+    //settings.save();
+    true
 }
 
 #[tauri::command]
@@ -47,12 +58,12 @@ pub fn load_settings() -> String {
 
 #[tauri::command]
 pub fn save_settings(settings: String) {
-    let des: Settings = serde_json::from_str(&settings).unwrap();
+    let groups: Settings = serde_json::from_str(&settings).unwrap();
     let _ = std::fs::write(
         ABSOLUTE_DATA_FOLDER.join(SETTINGS_FILE)
             .to_str()
             .unwrap(),
-        &serde_json::to_string_pretty(&des).unwrap()
+        &serde_json::to_string_pretty(&groups).unwrap()
     );
 }
 

@@ -29,6 +29,7 @@ import { updateRequest, fetchTasks } from './BackendHelpers';
 
 const Menu = function Menu(props: any) {
     const [updateInProcess, setUpdateInProcess] = useState(false);
+    const [updateAutomatically, setUpdateAutomatically] = useState(false);
     const [editOpened, setEditOpened] = useState(false);
     const [settingsOpened, setSettingsOpened] = useState(false);
 
@@ -40,10 +41,10 @@ const Menu = function Menu(props: any) {
     useEffect(() => {
       if (updateInProcess) {
         console.log(props.settingsContent.tasks.group);
-        invoke('update_tasks', {
+        let result = invoke('update_tasks', {
           tasks: JSON.stringify(props.tasks), 
           group: props.settingsContent.tasks.group
-        });
+        }).then(data => {console.log(data);});
         setUpdateInProcess((o) => !o);
       }
     }, [props.tasks])

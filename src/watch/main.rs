@@ -17,11 +17,11 @@ type Result<T> = std::result::Result<T, Box<dyn std::error::Error>>;
 #[clap(author, version, about, long_about = None)]
 struct Args {
     #[clap(short, long)]
+    end: Option<String>,
+    #[clap(short, long)]
     id: Option<String>,
     #[clap(short, long)]
     pwd: Option<String>,
-    #[clap(short, long)]
-    window_names: Vec<String>
 }
 
 fn main() -> Result<()> {

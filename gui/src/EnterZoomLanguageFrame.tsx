@@ -33,7 +33,7 @@ function EnterZoomLanguageFrame(props: any) {
           color="gray"
           align='center'
         >
-        Используется для перезахода
+        Язык Zoom для перезахода
         </Text>
         <Space h='sm' />
         <Container size={300}>
