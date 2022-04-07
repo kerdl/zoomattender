@@ -6,9 +6,6 @@ use windows::{
     Win32::System::{
         Com::{
             VARIANT,
-            VARIANT_0,
-            VARIANT_0_0,
-            VARIANT_0_0_0,
             // tauri crashes with multithreaded
             //COINIT_MULTITHREADED,
             COINIT_APARTMENTTHREADED,
@@ -29,9 +26,9 @@ use windows::{
             ITaskService,
             ITaskDefinition,
             ITriggerCollection,
+            IRegisteredTask,
             //IRegistrationInfo,
             IActionCollection,
-            IRegisteredTaskCollection,
             ITaskSettings, 
         }
     }, core::{Interface}
@@ -47,7 +44,7 @@ pub struct Scheduler {
     triggers: ITriggerCollection,
     actions: IActionCollection,
     //reginfo: IRegistrationInfo,
-    settings: ITaskSettings,
+    settings: ITaskSettings
 }
 
 impl Scheduler {
@@ -108,45 +105,29 @@ impl Scheduler {
         }
     }
 
-    fn task_iter_variant(i: u32) -> VARIANT {
-        VARIANT {
-            Anonymous: VARIANT_0 {
-                Anonymous: std::mem::ManuallyDrop::new(VARIANT_0_0 { 
-                    vt: 4, 
-                    wReserved1: 0, 
-                    wReserved2: 0, 
-                    wReserved3: 0, 
-                    Anonymous: VARIANT_0_0_0 { 
-                        fltVal: i as f32
-                    }
-                })
-            }
+    fn varin_flt(varin: &mut VARIANT, value: f32) {
+        unsafe {
+            let var00ptr = &mut varin.Anonymous.Anonymous;
+            var00ptr.vt = 4;
+            var00ptr.Anonymous.fltVal = value;
         }
     }
 
-    pub fn list_tasks(&self, path: &str) -> Result<IRegisteredTaskCollection> {
-        let varin = VARIANT {
-            Anonymous: VARIANT_0 {
-                Anonymous: std::mem::ManuallyDrop::new(VARIANT_0_0 { 
-                    vt: 4, 
-                    wReserved1: 0, 
-                    wReserved2: 0, 
-                    wReserved3: 0, 
-                    Anonymous: VARIANT_0_0_0 { 
-                        fltVal: 1.0 
-                    }
-                })
-            }
-        };
+    pub fn list_tasks(&self, path: &str) -> Result<Vec<IRegisteredTask>> {
+        let mut output = vec![];
         unsafe {
             let folder: ITaskFolder = self.service.GetFolder(BSTR::from(path))?;
             let tasks = folder.GetTasks(0)?;
             let count = tasks.Count()?;
-            for t in 0..count {
+            let mut varin = VARIANT::default();
 
-            }
-            Ok(tasks)
-        }
+            for t in 1..count + 1 {
+                Scheduler::varin_flt(&mut varin, t as f32);
+                let task: IRegisteredTask = tasks.Item(&varin)?;
+                output.push(task);
+            };
+        };
+        Ok(output)
     }
 
     pub fn make_folder(&self, path: &str) -> Result<ITaskFolder> {

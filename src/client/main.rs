@@ -60,21 +60,8 @@ fn main() -> Result<()> {
     if !scheduler.folder_exists(TASKS_PATH) {
         scheduler.make_folder(TASKS_PATH)?;
     }
-
-    let varin = VARIANT {
-        Anonymous: VARIANT_0 {
-            Anonymous: std::mem::ManuallyDrop::new(VARIANT_0_0 { 
-                vt: 4, 
-                wReserved1: 0, 
-                wReserved2: 0, 
-                wReserved3: 0, 
-                Anonymous: VARIANT_0_0_0 { 
-                    fltVal: 1.0 
-                }
-            })
-        }
-    };
-    unsafe {println!("{:?}", scheduler.list_tasks(TASKS_PATH)?.Item(varin)?);}
+    
+    println!("{:?}", scheduler.list_tasks(TASKS_PATH)?);
 
     let mut settings_just_created = false;
 
