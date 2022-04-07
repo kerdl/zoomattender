@@ -127,6 +127,7 @@ const Menu = function Menu(props: any) {
         />
         <div>
           <div style={{ display: 'flex', flexDirection: 'row' }}>
+            <Button onClick={() => invoke('set_automatic_upd', {state: true}).then(data => console.log(data))}></Button>
             {updateButton}
             <Space w='xl' />
             <Checkbox

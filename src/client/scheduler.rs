@@ -130,6 +130,33 @@ impl Scheduler {
         Ok(output)
     }
 
+    pub fn get_task(&self, path: &str, name: &str) -> Result<IRegisteredTask> {
+        unsafe {
+            let folder: ITaskFolder = self.service.GetFolder(
+                BSTR::from(path)
+            )?;
+            Ok(folder.GetTask(
+                std::path::Path::new(path)
+                    .join(name)
+                    .to_str()
+                    .unwrap()
+            )?)
+        }
+    }
+
+    pub fn task_exists(&self, path: &str, name: &str) -> Result<bool> {
+        let tasks = self.list_tasks(path)?;
+        unsafe {
+            for task in tasks {
+                let tname = task.Name()?;
+                if tname == name {
+                    return Ok(true);
+                }
+            }
+        };
+        Ok(false)
+    }
+
     pub fn make_folder(&self, path: &str) -> Result<ITaskFolder> {
         unsafe {
             let root = self.service.GetFolder(BSTR::from("\\"))?;
@@ -155,17 +182,21 @@ impl Scheduler {
         }
         Ok(self)
     }
-
+    /// start, end: 2005-10-11T13:21:17-08:00; 
+    /// interval: P<days>DT<hours>H<minutes>M<seconds>S;
+    /// duration, timelimit: PnYnMnDTnHnMnS;
     pub fn time_trigger(
         self,
         start: &str,
         end: Option<&str>,
+        interval: Option<&str>,
+        duration: Option<&str>,
         timelimit: Option<&str>
     ) -> Result<Self> {
         unsafe {
             let trigger = self.triggers.Create(TASK_TRIGGER_TIME)?;
             let time: ITimeTrigger = trigger.cast::<ITimeTrigger>()?;
-
+            
             // 2005-10-11T13:21:17-08:00
             // YYYY-MM-DDTHH:MM:SS(+-)HH:MM
             // The (+-)HH:MM section of the format describes 
@@ -187,6 +218,16 @@ impl Scheduler {
             // four days, two hours, and five minutes).
             if !timelimit.is_none() {
                 time.SetExecutionTimeLimit(timelimit.unwrap())?
+            };
+
+            if interval.is_some() && duration.is_some() {
+                let rep = time.Repetition()?;
+                // P<days>DT<hours>H<minutes>M<seconds>S
+                // (for example, "PT5M" is 5 minutes, 
+                // "PT1H" is 1 hour, and "PT20M" is 20 minutes). 
+                //The maximum time allowed is 31 days, and the minimum time allowed is 1 minute.
+                rep.SetInterval(&BSTR::from(interval.unwrap()))?;
+                rep.SetDuration(&BSTR::from(duration.unwrap()))?;
             };
 
             time.SetEnabled(1)?;

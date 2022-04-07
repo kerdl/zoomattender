@@ -65,7 +65,7 @@ impl Task {
                     .join(WATCH_EXE)
                     .to_str()
                     .unwrap(), &args, "")?
-            .time_trigger(&self.start, None, None)?
+            .time_trigger(&self.start, None, None, None, None)?
             .folder(TASKS_PATH)?
             .register()?;
         Ok(LocalTask::new(

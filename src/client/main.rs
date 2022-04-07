@@ -2,8 +2,6 @@
     all(not(debug_assertions), target_os = "windows"),
     windows_subsystem = "windows"
   )]
-use windows::Win32::Foundation::{DECIMAL, DECIMAL_0, DECIMAL_1};
-use windows::Win32::System::Com::{VARIANT, VARIANT_0, VARIANT_0_0, VARIANT_0_0_0};
 
 pub mod gui;
 pub mod scheduler;
@@ -12,7 +10,7 @@ pub mod mappings;
 pub mod local_fs;
 pub mod pref_variants;
 pub mod local_tasks;
-pub mod errors;
+pub mod dt;
 
 use reqwest;
 use clap::Parser;
@@ -25,6 +23,7 @@ use mappings::windnames::Windnames;
 
 type Result<T> = std::result::Result<T, Box<dyn std::error::Error>>;
 
+const AUTOMATIC_UPD_TASK_NAME: &str = "_Automatic_Update";
 const TASKS_PATH: &str = "\\ZoomAttender";
 const WATCH_EXE: &str = "watch.exe";
 const DATA_FOLDER: &str = "zoomattender_data";
@@ -122,6 +121,8 @@ fn main() -> Result<()> {
     tauri::Builder::default()
         .invoke_handler(tauri::generate_handler![
             gui::open_scheduler,
+            gui::auto_upd_turned_on,
+            gui::set_automatic_upd,
             gui::update_tasks,
             gui::load_settings,
             gui::save_settings,

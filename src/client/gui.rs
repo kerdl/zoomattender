@@ -4,10 +4,14 @@ use crate::{
     SETTINGS_FILE,
     PREFS_FILE,
     WINDNAMES_FILE, 
+    TASKS_PATH,
+    WATCH_EXE,
+    AUTOMATIC_UPD_TASK_NAME,
+    scheduler::Scheduler,
+    dt,
     mappings::tasks::Groups,
     mappings::pref_variants::PrefVariants,
     mappings::settings::Settings,
-    errors::TeacherPrefNotDefined,
     tasks
 };
 use windows::{
@@ -18,6 +22,7 @@ use windows::{
     }
 };
 use serde_json;
+use chrono::Utc;
 
 //type Result<T> = std::result::Result<T, Box<dyn std::error::Error>>;
 
@@ -34,17 +39,40 @@ pub fn update_tasks(tasks: String, group: String) -> Result<String, String> {
     }
 }
 
-#[tauri::command]
-pub fn do_automatic_upd() -> bool {
-    true
+pub fn auto_upd_exists() -> bool {
+    let sc = Scheduler::new().unwrap();
+    sc.task_exists(TASKS_PATH, AUTOMATIC_UPD_TASK_NAME).unwrap()
 }
 
 #[tauri::command]
-pub fn set_automatic_upd(value: bool) -> bool {
-    //let mut settings = Settings::new();
-    //settings.automatic_upd = value;
-    //settings.save();
-    true
+pub fn auto_upd_turned_on() -> bool {
+    let sc = Scheduler::new().unwrap();
+    let task = sc.get_task(TASKS_PATH, AUTOMATIC_UPD_TASK_NAME).unwrap();
+    unsafe {task.Enabled().unwrap() != 0}
+}
+
+#[tauri::command]
+pub fn set_automatic_upd(state: bool) {
+    if state {
+        if !auto_upd_exists() {
+            let curr_exe = std::env::current_exe().unwrap();
+            let curr_exe_str = curr_exe.to_str().unwrap();
+
+            let future_dt = Utc::now() + chrono::Duration::minutes(1);
+            let future_dt_fmt = dt::to_windows_utcplus3(future_dt);
+
+            Scheduler::new().unwrap()
+                .name(AUTOMATIC_UPD_TASK_NAME.to_string()).unwrap()
+                .folder(TASKS_PATH).unwrap()
+                .action(curr_exe_str, "--update", "").unwrap()
+                .time_trigger(&future_dt_fmt, None, Some("PT20M"), Some(""), None).unwrap()
+                .register().unwrap();
+        }
+
+    } else {
+
+    }
+
 }
 
 #[tauri::command]
