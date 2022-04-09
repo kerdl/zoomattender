@@ -26,7 +26,7 @@ import { CircleX } from 'tabler-icons-react';
 import { EditGroupFrame } from './EnterGroupFrame';
 import { EnterZoomLanguageFrame } from './EnterZoomLanguageFrame';
 import { FinishSetup } from './FinishSetup';
-import { settings, tasks } from './JsonSchemas';
+import { settings } from './JsonSchemas';
 import { fetchTasks } from './BackendHelpers';
 
 function modifySettings(
@@ -41,7 +41,7 @@ function modifySettings(
     return original
 }
 
-const InitialSetupWindow = function InitialSetupWindow(props: any) {
+function InitialSetupWindow(props: any) {
     const [settingsGroupSelect, setSettingsGroupSelect] = useState<null | string>("");
     const [settingsGroupType, setSettingsGroupType] = useState<null | string>(null);
     const [settingsZoomLanguage, setSettingsZoomLanguage] = useState<null | string>("ru");
@@ -52,9 +52,9 @@ const InitialSetupWindow = function InitialSetupWindow(props: any) {
     const prevStep = () => setActive((current) => (current > 0 ? current - 1 : current));
 
     useEffect(() => {
-      if (props.settingsContent && !props.tasksContent) { 
+      if (props.settingsContent && !props.fullTasksContent) { 
         fetchTasks(props.settingsContent.tasks.api_url)
-          .then(tasks => {props.setTasksContent(tasks)})
+          .then(tasks => {props.setFullTasksContent(tasks)})
       }
     }, [props.settingsContent])
 
@@ -75,7 +75,7 @@ const InitialSetupWindow = function InitialSetupWindow(props: any) {
               completedIcon={!settingsGroupSelect && !settingsGroupType ? <CircleX /> : null}>
               <Space h={80}/>
               <EditGroupFrame 
-                tasks={props.tasksContent}
+                fullTasksContent={props.fullTasksContent}
                 settingsGroupSelect={settingsGroupSelect}
                 settingsGroupType={settingsGroupType}
                 setSettingsGroupSelect={setSettingsGroupSelect}

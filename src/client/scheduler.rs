@@ -26,7 +26,7 @@ use windows::{
             ITaskDefinition,
             ITriggerCollection,
             IRegisteredTask,
-            //IRegistrationInfo,
+            IRegistrationInfo,
             IActionCollection,
             ITaskSettings, 
         }
@@ -42,7 +42,7 @@ pub struct Scheduler {
     def: ITaskDefinition,
     triggers: ITriggerCollection,
     actions: IActionCollection,
-    //reginfo: IRegistrationInfo,
+    reginfo: IRegistrationInfo,
     settings: ITaskSettings
 }
 
@@ -55,6 +55,7 @@ impl Scheduler {
                 None, 
                 CLSCTX_ALL
             )?;
+
             service.Connect(
                 VARIANT::default(),
                 VARIANT::default(),
@@ -64,7 +65,7 @@ impl Scheduler {
             let def: ITaskDefinition = service.NewTask(0)?;
             let triggers: ITriggerCollection = def.Triggers()?;
             let actions: IActionCollection = def.Actions()?;
-            //let reginfo: IRegistrationInfo = def.RegistrationInfo()?;
+            let reginfo: IRegistrationInfo = def.RegistrationInfo()?;
             let settings: ITaskSettings = def.Settings()?;
 
         Ok(Self {
@@ -74,7 +75,7 @@ impl Scheduler {
             def,
             triggers,
             actions,
-            //reginfo,
+            reginfo,
             settings
         })
         }
@@ -82,6 +83,11 @@ impl Scheduler {
 
     pub fn name(mut self, name: String) -> Result<Self> {
         self.name = Some(name);
+        Ok(self)
+    }
+
+    pub fn description(self, desc: String) -> Result<Self> {
+        unsafe {self.reginfo.SetDescription(desc)?};
         Ok(self)
     }
 
@@ -134,6 +140,12 @@ impl Scheduler {
             )?;
             Ok(folder.GetTask(name)?)
         }
+    }
+
+    pub fn delete_task(&self, name: &str) -> Result<()> {
+        assert!(self.folder.is_some());
+        unsafe {self.folder.as_ref().unwrap().DeleteTask(name, 0)?};
+        Ok(())
     }
 
     pub fn task_exists(&self, path: &str, name: &str) -> Result<bool> {

@@ -28,20 +28,6 @@ import { motion } from "framer-motion";
 import { fetchTasks, getAllGroups, loadSettings, saveSettings } from './BackendHelpers';
 import { invoke } from '@tauri-apps/api/tauri';
 
-function NotAllSatisfied(props: any) {
-  return (
-    <Modal
-      centered
-      title="ыъбъыъь"
-      opened={props.opened}
-      onClose={() => props.closeFunc()}>
-
-      Не все поля заполнены правильно
-
-    </Modal>
-  );
-}
-
 const ResetConfirm = function ResetConfirm(props: any) {
   return (
     <Modal
@@ -108,21 +94,16 @@ const SettingsWindow = function SettingsWindow(props: any) {
     settingsDoRejoin ? !!settingsDoNotRejoinEnd : true,
   ];
 
-  function switchGroupInput() {
-    setShowGroupSelect((o) => !o);
-    setShowGroupType((o) => !o);
-  }
-
   function _fetchTasks() {
     fetchTasks(settingsApiUrl).then((tasks) => {
-      props.setTasks(tasks);
+      props.setFullTasksContent(tasks);
     });
   }
 
   useEffect(() => {
-    if (showGroupSelect && !props.tasks) {
+    if (showGroupSelect && !props.fullTasksContent) {
       fetchTasks(settingsApiUrl).then((tasks) => {
-        props.setTasks(tasks);
+        props.setFullTasksContent(tasks);
       });
     }
   }, [showGroupSelect])
@@ -141,7 +122,6 @@ const SettingsWindow = function SettingsWindow(props: any) {
         do_not_watch: settingsDoNotWatch,
         max_no_windows: settingsMaxNoWindows,
         zoom_language: settingsZoomLanguage,
-        //zoom_windnames: settingsZoomWindnames,
         rejoin_confirm_await: settingsRejoinConfirmAwait,
         do_not_rejoin_end: settingsDoNotRejoinEnd
       },
@@ -224,10 +204,10 @@ const SettingsWindow = function SettingsWindow(props: any) {
               <GroupInput
                 putError={true}
                 icon={<Sausage size={18} />}
-                tasks={props.tasks}
+                fullTasksContent={props.fullTasksContent}
                 value={settingsGroupType}
                 onChange={setSettingsGroupType}
-                onClick={() => !props.tasks ? _fetchTasks() : null}
+                onClick={() => !props.fullTasksContent ? _fetchTasks() : null}
                 label="Группа" />
 
               <Divider my="xs" label="Zoom" labelPosition="center" />

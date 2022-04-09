@@ -25,12 +25,12 @@ import {
 } from '@mantine/core';
 import { NotificationsProvider } from '@mantine/notifications';
 import { BorderRadius, Check, X } from 'tabler-icons-react';
-import { tasks } from './JsonSchemas';
+import { fullTasks } from './JsonSchemas';
 import { getAllGroups } from './BackendHelpers';
 import { validGroup } from './Strings';
 
 interface GroupInputProps {
-    tasks: tasks,
+    fullTasksContent: fullTasks,
     value: string,
     putError: boolean,
     onChange: (value: string) => void,
@@ -44,14 +44,14 @@ function GroupInput(props: GroupInputProps) {
       <Autocomplete
         required
         icon={props.icon}
-        data={props.tasks ? getAllGroups(props.tasks.groups) : ['Получение...']}
+        data={props.fullTasksContent ? getAllGroups(props.fullTasksContent.groups) : ['Получение...']}
         value={props.value}
         onChange={(v) => {
         props.onChange(validGroup(v));
         }}
         onClick={props.onClick}
         error={props.putError && (!props.value || props.value.length) < 6 ? true : false}
-        placeholder={props.tasks ? "Группа" : "Получение..."}
+        placeholder={props.fullTasksContent ? "Группа" : "Получение..."}
         label={props.label}
       />
   );

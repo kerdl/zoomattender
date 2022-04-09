@@ -4,6 +4,7 @@ impl LocalTask {
     pub fn new(
         enabled: bool,
         name: String, 
+        description: String,
         start: String, 
         end: String, 
         id: String, 
@@ -12,6 +13,7 @@ impl LocalTask {
         Self {
             enabled,
             name,
+            description,
             start,
             end,
             id,

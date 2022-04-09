@@ -50,8 +50,10 @@ pub fn parse_args<T: Parser>(args: &str) -> Option<T> {
 
 impl Task {
     pub fn make(&self, prefs: &PrefVariants) -> Result<LocalTask> {
-        let mut id = self.zoom_data[0].data.id.to_string();
-        let mut pwd = self.zoom_data[0].data.pwd.to_string();
+        let self_serialize = serde_json::to_string(self)?;
+
+        let mut id = "0".to_string();
+        let mut pwd = "0".to_string();
 
         if self.zoom_data.len() > 1 {
             for tchr in self.zoom_data.clone() {
@@ -62,10 +64,15 @@ impl Task {
                 }
             }
         }
+        else {
+            id = self.zoom_data[0].data.id.clone();
+            pwd = self.zoom_data[0].data.pwd.clone();
+        }
 
         let args = format!("--start {} --end {} --id {} --pwd {}", self.start, self.end, id, pwd);
         Scheduler::new()?
             .name(self.name.clone())?
+            .description(self_serialize.clone())?
             .action(
                 ABSOLUTE_DATA_FOLDER
                     .parent()
@@ -79,6 +86,7 @@ impl Task {
         Ok(LocalTask::new(
             true,
             self.name.clone(), 
+            self_serialize,
             self.start.clone(), 
             self.end.clone(), 
             id, 

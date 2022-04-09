@@ -29,37 +29,38 @@ interface prefsSchema {
     teachers: []
 }
 
-// tasks //
-interface zoomDataInnerSchema {
+// full tasks //
+interface fullTaskZoomDataInnerSchema {
     id: string,
     pwd: string
 }
 
-interface zoomDataSchema {
+interface fullTaskZoomDataSchema {
     name: string,
-    data: zoomDataInnerSchema
+    data: fullTaskZoomDataInnerSchema
 }
 
-interface tasksSchema {
+interface fullTaskSchema {
     name: string,
     start: string,
     end: string,
-    zoom_data: zoomDataSchema
+    zoom_data: Array<fullTaskZoomDataSchema>
 }
 
-interface groupSchema {
+interface fullTaskGroupSchema {
     group: string,
-    tasks: tasksSchema
+    tasks: fullTaskSchema
 }
 
-interface tasksSchema {
-    groups: groupSchema
+interface fullTasksSchema {
+    groups: fullTaskGroupSchema
 }
 
 // local tasks //
 interface localTaskSchema {
     enabled: boolean,
     name: string,
+    description: fullTaskSchema,
     start: string,
     end: string,
     id: string,
@@ -67,10 +68,12 @@ interface localTaskSchema {
 }
 
 interface localTasksSchema {
-    tasks: Array<localTaskSchema>
+    tasks: localTaskSchema[]
 }
 
 export type settings = settingsSchema;
 export type prefs = prefsSchema;
-export type tasks = tasksSchema;
-export type local_tasks = localTasksSchema;
+export type fullTasks = fullTasksSchema;
+export type fullTask = fullTaskSchema;
+export type localTasks = localTasksSchema;
+export type localTask = localTaskSchema;

@@ -14,104 +14,66 @@ import {
     Loader, 
     Tooltip,
     Center,
+    Container,
     MantineProvider,
     LoadingOverlay,
     Transition,
-    Switch
+    Switch,
+    Group
   
 } from '@mantine/core';
-import { X } from 'tabler-icons-react';
+import { X, Check } from 'tabler-icons-react';
 import { showNotification } from '@mantine/notifications';
 import SettingsWindow from "./SettingsWindow";
 import EditTaskWindow from './EditTaskWindow';
 import { fetchTasks } from './BackendHelpers';
+import { TasksTable } from './TasksTable';
 
 
 
 const Menu = function Menu(props: any) {
     const [updateInProcess, setUpdateInProcess] = useState(false);
     const [updateAutomatically, setUpdateAutomatically] = useState(false);
-    const [editOpened, setEditOpened] = useState(false);
     const [settingsOpened, setSettingsOpened] = useState(false);
 
     function _fetchTasks() {
       fetchTasks(props.settingsContent.tasks.api_url)
-        .then(data => props.setTasks(data));
+        .then(data => props.setFullTasksContent(data));
     }
 
     useEffect(() => {
+      if (props.fromInitialSetup) {
+        setUpdateInProcess((o) => !o); 
+        _fetchTasks();
+      }
       invoke('auto_upd_turned_on')
         .then((s: any) => setUpdateAutomatically(s))
     }, [])
 
     useEffect(() => {
       if (updateInProcess) {
-        console.log(props.settingsContent.tasks.group);
-        let result = invoke('update_tasks', {
-          tasks: JSON.stringify(props.tasks), 
+        invoke('update_tasks', {
+          tasks: JSON.stringify(props.fullTasksContent), 
           group: props.settingsContent.tasks.group
-        }).then(data => {console.log(data);});
-        setUpdateInProcess((o) => !o);
+        })
+          .then(data => {console.log(data);})
+          .then(() => invoke('get_tasks_from_scheduler')
+            .then(data => {
+              if (typeof data == "string")
+                props.setLocalTasksContent(JSON.parse(data))
+            }))
+          .then(() => setUpdateInProcess((o) => !o))
+          .then(() => showNotification({
+            color: 'green',
+            icon: <Check />,
+            autoClose: 3000,
+            message: 'Задачи обновлены',
+          }));
       }
-    }, [props.tasks])
-
-    const attendCheckbox = [
-      <Tooltip label="Посетить" key="attendCheckboxTooltip">
-        <Checkbox key="attendCheckbox"
-          defaultChecked
-          color="ocean-blue" />
-      </Tooltip>
-    ]
-
-    const tableEdit = <ActionIcon
-    variant="outline"
-    size="xs"
-    style={{ height: '20px', width: '30px' }}
-    color='blue'
-    onClick={() => setEditOpened(true)}>
-    <Adjustments size={15} />
-    </ActionIcon>
-
-    const elements = [
-      { name: '1 пиздострадание Соси А.А.', time: '12:10 - 12:10' },
-      { name: '2 пиздострадание Соси А.Б.', time: '12:10 - 12:10' },
-      { name: '3 пиздострадание Соси А.В.', time: '12:10 - 12:10' },
-      { name: '4 пиздострадание Соси А.Г.', time: '12:10 - 12:10' },
-      { name: '5 пиздострадание Соси А.Д.', time: '12:10 - 12:10' },
-      { name: '6 пиздострадание Соси А.Д.', time: '12:10 - 12:10' },
-      { name: '7 пиздострадание Соси А.Д.', time: '12:10 - 12:10' },
-    ];
-  
-    const rows = elements.map((element) => (
-      <tr key={element.name}>
-        <td>{attendCheckbox}</td>
-        <td>{element.name}</td>
-        <td>{element.time}</td>
-        <td>
-          <div style={{
-            display: 'flex',
-            justifyContent: 'center',
-            alignItems: 'center'
-          }}>{tableEdit}
-          </div>
-        </td>
-      </tr>
-    ));
-
-    const updateButton = <Button
-      variant="gradient"
-      gradient={{ from: 'indigo', to: 'cyan' }}
-      loading={updateInProcess}
-      leftIcon={<Refresh size={20} />}
-      onClick={async () => {
-        setUpdateInProcess((o) => !o);
-        _fetchTasks();
-      }}>
-      Обновить задачи
-    </Button>
+    }, [props.fullTasksContent])
 
     return (
-      <div style={{
+      <Container style={{
         display: 'flex',
         justifyContent: 'center',
         alignItems: 'center',
@@ -122,20 +84,26 @@ const Menu = function Menu(props: any) {
           setSettingsOpened={setSettingsOpened}
           content={props.settingsContent}
           setContent={props.setSettingsContent}
-          tasks={props.tasks}
-          setTasks={props.setTasks}
+          fullTasksContent={props.fullTasksContent}
+          setFullTasksContent={props.setFullTasksContent}
           setShowInitialSetup={props.setShowInitialSetup}
         />}
 
-        <EditTaskWindow
-          opened={editOpened}
-          toggleFunc={setEditOpened}
-        />
-        <div>
-          <div style={{ display: 'flex', flexDirection: 'row' }}>
-            <Button onClick={() => invoke('get_tasks_from_scheduler').then(data => console.log(data))} />
-            {updateButton}
-            <Space w='xl' />
+        <Container>
+          <Button compact variant='subtle' onClick={() => invoke('delete_all_tasks')} />
+          <Group>
+            <Button
+              variant="gradient"
+              gradient={{ from: 'indigo', to: 'cyan' }}
+              loading={updateInProcess}
+              leftIcon={<Refresh size={20} />}
+              onClick={() => {
+                setUpdateInProcess((o) => !o); 
+                _fetchTasks();
+              }}
+            >
+            Обновить задачи
+            </Button>
             <Switch
               checked={updateAutomatically}
               onChange={(s) => {
@@ -146,22 +114,20 @@ const Menu = function Menu(props: any) {
               label={<Text size="md">Обновлять автоматически</Text>}
               color="ocean-blue"
             />
-          </div>
+          </Group>
+
           <Space h='xl' />
-          <ScrollArea style={{ height: 250 }}>
-            <Table highlightOnHover>
-              <thead>
-                <tr>
-                  <th>{attendCheckbox}</th>
-                  <th>Имя</th>
-                  <th>Время</th>
-                  <th>Изменить</th>
-                </tr>
-              </thead>
-              <tbody>{rows}</tbody>
-            </Table>
-          </ScrollArea>
+
+          <TasksTable 
+            localTasksContent={props.localTasksContent} 
+            setLocalTasksContent={props.setLocalTasksContent}
+
+            prefsContent={props.prefsContent}
+            setPrefsContent={props.setPrefsContent}
+          />
+
           <Space h='sm' />
+
           <Center>
             <Button
               variant="outline"
@@ -171,7 +137,9 @@ const Menu = function Menu(props: any) {
             Открыть планировщик заданий
             </Button>
           </Center>
+
           <Space h='sm' />
+
           <Center>
             <Button
               color={"gray"}
@@ -180,8 +148,8 @@ const Menu = function Menu(props: any) {
               Настройки
             </Button>
           </Center>
-        </div>
-      </div>
+        </Container>
+      </Container>
     );
 }
 

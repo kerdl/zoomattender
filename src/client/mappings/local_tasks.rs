@@ -4,6 +4,7 @@ use serde::{Serialize, Deserialize};
 pub struct LocalTask {
     pub enabled: bool,
     pub name: String,
+    pub description: String,
     pub start: String,
     pub end: String,
     pub id: String,

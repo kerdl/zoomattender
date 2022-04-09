@@ -10,10 +10,15 @@ use crate::{
     AUTOMATIC_UPD_TASK_NAME,
     scheduler::Scheduler,
     dt,
-    mappings::tasks::Groups,
-    mappings::pref_variants::PrefVariants,
-    mappings::settings::Settings,
-    mappings::local_tasks::{LocalTasks, LocalTask},
+    mappings::{
+        tasks::Groups,
+        pref_variants::PrefVariants,
+        settings::Settings,
+        local_tasks::{
+            LocalTasks, 
+            LocalTask
+        },
+    },
     tasks
 };
 use clap::StructOpt;
@@ -25,7 +30,11 @@ use windows::{
             Threading::{
                 CREATE_NO_WINDOW
             },
-        TaskScheduler::IExecAction
+        TaskScheduler::{
+            ITaskScheduler,
+            ITimeTrigger,
+            IExecAction
+        }
     }}
 };
 use serde_json;
@@ -37,6 +46,7 @@ use shlex;
 
 #[tauri::command]
 pub fn update_tasks(tasks: String, group: String) -> Result<String, String> {
+    delete_all_tasks();
     let result = tasks::update_tasks(tasks, group);
     match result {
         Ok(Some(tasks)) => {
@@ -111,7 +121,6 @@ pub fn set_automatic_upd(state: bool) -> () {
 pub fn get_tasks_from_scheduler() -> Result<String, String> {
     let sc = Scheduler::new().unwrap();
     let tasks = sc.list_tasks(TASKS_PATH).unwrap();
-    println!("a");
     unsafe {
         let mut local_tasks = LocalTasks::new();
         for t in tasks {
@@ -133,8 +142,13 @@ pub fn get_tasks_from_scheduler() -> Result<String, String> {
                     pargmunet.to_string()
                 };
     
-                let cmdline = format!("{} {}", path, args);
+                let desc = {
+                    let mut pdescription = BSTR::from("");
+                    def.RegistrationInfo().unwrap().Description(&mut pdescription).unwrap();
+                    pdescription.to_string()
+                };
 
+                let cmdline = format!("{} {}", path, args);
                 let parsed = tasks::parse_args::<args::WatchArgs>(&cmdline);
                 
                 if parsed.is_some() {
@@ -142,6 +156,7 @@ pub fn get_tasks_from_scheduler() -> Result<String, String> {
                     let lt = LocalTask::new(
                         t.Enabled().unwrap() != 0,
                         t.Name().unwrap().to_string(),
+                        desc,
                         parsed.start,
                         parsed.end,
                         parsed.id,
@@ -152,8 +167,132 @@ pub fn get_tasks_from_scheduler() -> Result<String, String> {
                 }
             }
         };
+        println!("loaded tasks: {:?}", local_tasks);
         Ok(serde_json::to_string_pretty(&local_tasks).unwrap())
     }
+}
+
+#[tauri::command]
+pub fn delete_all_tasks() -> () {
+    let sc = Scheduler::new().unwrap().folder(TASKS_PATH).unwrap();
+    let tasks = sc.list_tasks(TASKS_PATH).unwrap();
+    
+    let mut deleted_names: Vec<String> = vec![];
+    unsafe {
+        for t in tasks {
+            let name = t.Name().unwrap().to_string();
+            if !name.starts_with('_') {
+                deleted_names.push(name.clone());
+                sc.delete_task(&name);
+            };
+        };
+    };
+    println!("deleted tasks: {:?}", deleted_names);
+}
+
+#[tauri::command]
+pub fn set_task_state(name: String, state: bool) -> () {
+    let sc = Scheduler::new().unwrap();
+    let tasks = sc.list_tasks(TASKS_PATH).unwrap();
+
+    unsafe {
+        for t in tasks {
+            let n = t.Name().unwrap().to_string();
+            if n == name {
+                t.SetEnabled(state as i16);
+                println!("set task state to {}: {}", state, name);
+                break;
+            }
+        }
+    }
+}
+
+#[tauri::command]
+pub fn edit_task(
+    name: String, 
+    start: Option<String>, 
+    end: Option<String>, 
+    id: Option<String>, 
+    pwd: Option<String>
+) -> () {
+    let sc = Scheduler::new().unwrap();
+    let tasks = sc.list_tasks(TASKS_PATH).unwrap();
+
+    unsafe {
+        for t in tasks {
+            let n = t.Name().unwrap().to_string();
+            if n == name {
+                let def = t.Definition().unwrap();
+                let actions = def.Actions().unwrap();
+                let time_trigger = actions.Item(1).unwrap();
+                let exec_action: IExecAction = time_trigger.cast().unwrap();
+
+                let path = {
+                    let mut ppath = BSTR::from("");
+                    exec_action.Path(&mut ppath).unwrap();
+                    ppath.to_string()
+                };
+
+                let args = {
+                    let mut pargument = BSTR::from("");
+                    exec_action.Arguments(&mut pargument);
+                    pargument.to_string()
+                };
+
+                let desc = {
+                    let mut pdescription = BSTR::from("");
+                    def.RegistrationInfo().unwrap().Description(&mut pdescription).unwrap();
+                    pdescription.to_string()
+                };
+
+                let cmdline = format!("{} {}", path, args);
+                let mut parsed = tasks::parse_args::<args::WatchArgs>(&cmdline).unwrap();
+
+                let trigger = def.Triggers().unwrap().Item(1).unwrap();
+                let time: ITimeTrigger = trigger.cast::<ITimeTrigger>().unwrap();
+
+                if start.is_some() {
+                    let start = start.unwrap();
+                    time.SetStartBoundary(&*start);
+                    parsed.start = start;
+                }
+
+                if end.is_some() {
+                    let end = end.unwrap();
+                    parsed.end = end;
+                }
+            
+                if id.is_some() {
+                    let id = id.unwrap();
+                    parsed.id = id;
+                }
+            
+                if pwd.is_some() {
+                    parsed.pwd = pwd;
+                }
+
+                let new_args = format!(
+                    "--start {} --end {} --id {} --pwd {}", 
+                    parsed.start, 
+                    parsed.end, 
+                    parsed.id, 
+                    parsed.pwd.unwrap_or("".to_string())
+                );
+
+                Scheduler::new().unwrap()
+                    .name(name).unwrap()
+                    .description(desc).unwrap()
+                    .folder(TASKS_PATH).unwrap()
+                    .action(&path, &new_args, "").unwrap()
+                    .time_trigger(&parsed.start, None, None, None, None).unwrap()
+                    .register().unwrap();
+
+                break;
+            }
+        }
+    }
+
+
 }
 
 #[tauri::command]
@@ -166,7 +305,7 @@ pub fn load_settings() -> String {
 }
 
 #[tauri::command]
-pub fn save_settings(settings: String) {
+pub fn save_settings(settings: String) -> () {
     let groups: Settings = serde_json::from_str(&settings).unwrap();
     let _ = std::fs::write(
         ABSOLUTE_DATA_FOLDER.join(SETTINGS_FILE)
@@ -177,13 +316,15 @@ pub fn save_settings(settings: String) {
 }
 
 #[tauri::command]
-pub fn reset_settings() {
+pub fn reset_settings() -> () {
     let _ = std::fs::write(
         ABSOLUTE_DATA_FOLDER.join(SETTINGS_FILE)
             .to_str()
             .unwrap(),
         &serde_json::to_string_pretty(&Settings::default()).unwrap()
     );
+    delete_all_tasks();
+    set_automatic_upd(false);
 }
 
 #[tauri::command]
@@ -193,6 +334,39 @@ pub fn load_prefs() -> String {
             .to_str()
             .unwrap()
     ).unwrap()
+}
+
+#[tauri::command]
+pub fn replace_teacher_pref(prefs: String, old: String, mut new: String) -> String {
+    let mut parsed: PrefVariants = serde_json::from_str(&prefs).unwrap();
+
+    if old.len() > 0 {
+        let mut found = false;
+        for i in 0..parsed.teachers.len() {
+            if parsed.teachers[i] == old {
+                found = true;
+                std::mem::swap(&mut parsed.teachers[i], &mut new);
+                break;
+            };
+        };
+        if !found {
+            parsed.teachers.push(new);
+        }
+    }
+    else {
+        parsed.teachers.push(new);
+    };
+
+    let serialization = serde_json::to_string_pretty(&parsed).unwrap();
+
+    let _ = std::fs::write(
+        ABSOLUTE_DATA_FOLDER.join(PREFS_FILE)
+            .to_str()
+            .unwrap(),
+        &serialization
+    );
+
+    serialization
 }
 
 #[tauri::command]

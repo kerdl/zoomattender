@@ -4,7 +4,7 @@ pub mod watchdog;
 pub mod fmtstring;
 pub mod zoom;
 
-use app::window;
+use app::{window, args};
 use clap::Parser;
 use watchdog::Watchdog;
 use zoom::Zoom;
@@ -13,40 +13,27 @@ use ::core::time;
 type Result<T> = std::result::Result<T, Box<dyn std::error::Error>>;
 
 
-#[derive(clap::Parser, Debug)]
-#[clap(author, version, about, long_about = None)]
-struct Args {
-    #[clap(short, long)]
-    start: String,
-    #[clap(short, long)]
-    end: String,
-    #[clap(short, long)]
-    id: String,
-    #[clap(short, long)]
-    pwd: Option<String>,
-}
-
 fn main() -> Result<()> {
     println!("{:?}", std::env::args());
-    let _args = Args::parse();
+    let args = args::WatchArgs::parse();
     
-    let id = "9608553019"; //&args.id.unwrap();
-    let pwd = "Y3NERFVlYVc3dkdUM2pxc21TanYxdz09"; //&args.pwd.unwrap();
+    let id = &args.id;//"9608553019"; 
+    let pwd = &args.pwd.unwrap();//"Y3NERFVlYVc3dkdUM2pxc21TanYxdz09";
 
     let window_names = vec![
         "ConfMeetingNotfiyWnd".to_string(),
         "Connecting".to_string(),
         "Zoom Meeting".to_string(),
         "Waiting for Host".to_string()
-    ]; //&args.window_names;
+    ]; 
 
-    //let wd = Watchdog::new(window_names, 3, 1, 2)?;
-    //loop {
-    //    Zoom::run_from_id_pwd(id, pwd)?;
-    //    std::thread::sleep(time::Duration::from_secs(10));
-    //    wd.watch();
-    //    window::show_msgbox("pososesh) ok?", "hui")
-    //}
+    let wd = Watchdog::new(window_names, 3, 1, 2)?;
+    loop {
+        Zoom::run_from_id_pwd(id, pwd)?;
+        std::thread::sleep(time::Duration::from_secs(10));
+        wd.watch();
+        window::show_msgbox("pososesh) ok?", "hui")
+    }
     Ok(())
 }
 

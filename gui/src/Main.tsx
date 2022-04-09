@@ -22,18 +22,19 @@ import {
 
 } from '@mantine/core';
 import { NotificationsProvider } from '@mantine/notifications';
-import {settings, prefs, tasks} from './JsonSchemas';
+import { settings, prefs, fullTasks, localTasks } from './JsonSchemas';
 import { loadSettings, loadPrefs, loadWindnames } from './BackendHelpers';
 
 const Main = function Main() {
   const [showInitialSetup, setShowInitialSetup] = useState(false);
-  const [updateInProcess, setUpdateInProcess] = useState(false);
+  const [fromInitialSetup, setFromInitialSetup] = useState(false);
 
-  const [tasksContent, setTasksContent] = useState<null | tasks | boolean>(null);
+  const [fullTasksContent, setFullTasksContent] = useState<null | fullTasks>(null);
+  const [localTasksContent, setLocalTasksContent] = useState<null | localTasks>(null);
   const [settingsContent, setSettingsContent] = useState<null | settings>(null);
   const [prefsContent, setPrefsContent] = useState<null | prefs>(null);
   const [windnamesContent, setWindnamesContent] = useState<null | any>(null);
-  
+
   useEffect(() => {
     async function _loadSettings() {
       const _s = await loadSettings();
@@ -42,7 +43,8 @@ const Main = function Main() {
           _s && 
           (!_s.tasks.group || 
           !_s.rejoin.zoom_language))
-          setShowInitialSetup(true);
+          setShowInitialSetup(true)
+          setFromInitialSetup(true);
       }
 
     async function _loadPrefs() {
@@ -55,37 +57,64 @@ const Main = function Main() {
       setWindnamesContent(_w);
     }
 
+    async function _getTasksFromScheduler() {
+      const _t: any = await invoke('get_tasks_from_scheduler');
+      let outer = JSON.parse(_t);
+
+      for (let i = 0; i < outer.tasks.length; i++) {
+        const t = outer.tasks[i];
+        outer.tasks[i].description = JSON.parse(t.description);
+      }
+
+      setLocalTasksContent(outer);
+      console.log('Tasks from scheduler loaded');
+    }
+
     _loadSettings();
     _loadPrefs();
     _loadWindnames();
+    _getTasksFromScheduler();
   
   }, [])
 
   return (
     <NotificationsProvider position='top-center' containerWidth={350}>
       <LoadingOverlay 
-        visible={settingsContent && prefsContent ? false : true}
+        visible={
+          settingsContent && 
+          prefsContent && 
+          localTasksContent ? 
+          false : true
+        }
         overlayOpacity={1} 
         overlayColor="#1e1e1e"/>
-      <div>
-        {showInitialSetup && <InitialSetupWindow 
-          toggleFunc={setShowInitialSetup}
-          langs={windnamesContent}
-          tasksContent={tasksContent}
-          setTasksContent={setTasksContent}
-          settingsContent={settingsContent}
-          setSettingsContent={setSettingsContent}
-          setShowInitialSetup={setShowInitialSetup}/>}
-        {!showInitialSetup && <Menu 
-          tasks={tasksContent}
-          setTasks={setTasksContent}
-          settingsContent={settingsContent}
-          setSettingsContent={setSettingsContent}
-          setShowInitialSetup={setShowInitialSetup}/>}
-      </div>
+      {showInitialSetup && <InitialSetupWindow 
+        toggleFunc={setShowInitialSetup}
+        langs={windnamesContent}
+
+        fullTasksContent={fullTasksContent}
+        setFullTasksContent={setFullTasksContent}
+
+        settingsContent={settingsContent}
+        setSettingsContent={setSettingsContent}
+        
+        setShowInitialSetup={setShowInitialSetup}/>}
+      {!showInitialSetup && <Menu 
+        fromInitialSetup={fromInitialSetup}
+
+        fullTasksContent={fullTasksContent}
+        setFullTasksContent={setFullTasksContent}
+        localTasksContent={localTasksContent}
+        setLocalTasksContent={setLocalTasksContent}
+
+        settingsContent={settingsContent}
+        setSettingsContent={setSettingsContent}
+
+        prefsContent={prefsContent}
+        setPrefsContent={setPrefsContent}
+
+        setShowInitialSetup={setShowInitialSetup}/>}
     </NotificationsProvider>
-
-
   );
 }
 

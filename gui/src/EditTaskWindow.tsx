@@ -14,19 +14,57 @@ import {
   ScrollArea,
   Text
 } from '@mantine/core';
-import {
-  DatePicker,
-  TimeRangeInput
-} from '@mantine/dates'
+import { TimeRangeInput} from '@mantine/dates'
 import { useState } from 'react';
+import { invoke } from '@tauri-apps/api/tauri';
+import { localTask, prefs } from './JsonSchemas';
 
+function seekVariant(localTask: localTask, id: string) {
+  for (let i = 0; i < localTask.description.zoom_data.length; i++) {
+    const v = localTask.description.zoom_data[i];
+    if (v.data.id == id) {
+      return v.name;
+    }
+  }
+  return null;
+}
 
-const EditTaskWindow = function EditTaskWindow(props: any) {
-  const [timeValue, setTimeValue] = useState<[Date, Date]>([new Date(), new Date()])
-  const [dateValue, setDateValue] = useState<[Date | null]>([new Date()])
-  const [zoomVariantValue, setZoomVariantValue] = useState<string | null>("Соси А.А.")
-  const [idValue, setIdValue] = useState("228 1337 6969")
-  const [pwdValue, setPwdValue] = useState("so tr")
+function seekData(localTask: localTask, variant: string) {
+  for (let i = 0; i < localTask.description.zoom_data.length; i++) {
+    const v = localTask.description.zoom_data[i];
+    if (v.name == variant) {
+      return v.data;
+    }
+  }
+  return null;
+}
+
+function getVariants(localTask: localTask) {
+  let variants = [];
+  for (let i = 0; i < localTask.description.zoom_data.length; i++) {
+    const v = localTask.description.zoom_data[i];
+    variants.push(v.name);
+  }
+  return variants;
+}
+
+interface EditTaskWindowProps {
+  opened: any,
+  toggleFunc: (state: boolean) => void,
+  localTaskContent: localTask,
+  prefsContent: prefs,
+  setPrefsContent: (prefs: prefs) => void
+}
+function EditTaskWindow(props: EditTaskWindowProps) {
+  const [timeValue, setTimeValue] = useState<[Date, Date]>([
+    new Date(props.localTaskContent.start), 
+    new Date(props.localTaskContent.end)
+  ])
+  const [zoomVariantValue, setZoomVariantValue] = useState<string | null>(
+    seekVariant(props.localTaskContent, props.localTaskContent.id)
+  )
+  const [idValue, setIdValue] = useState(props.localTaskContent.id)
+  const [pwdValue, setPwdValue] = useState(props.localTaskContent.pwd)
 
   return (
     <Modal
@@ -43,7 +81,6 @@ const EditTaskWindow = function EditTaskWindow(props: any) {
           my="xs"
           label="Время"
           labelPosition="center" />
-        <Center>
         <TimeRangeInput
           required
           value={timeValue}
@@ -53,25 +90,42 @@ const EditTaskWindow = function EditTaskWindow(props: any) {
               timeValue[1] == null ? true : false}
           clearable
           label="Промежуток задачи" />
-        <Space w="sm" />
-        <DatePicker
-          required
-          value={dateValue[0]}
-          onChange={(d) => setDateValue([d])}
-          error={dateValue[0] == null}
-          label="Дата задачи"
-          placeholder="Выбрать" />
-        </Center>
         <Divider my="xs" label="Zoom" labelPosition="center" />
         <Select
             label="Вариант"
             placeholder="Выбрать"
-            data={[
-              { value: 'Соси А.А.', label: 'Соси А.А.' },
-              { value: 'Соси А.Б.', label: 'Соси А.Б.' }
-            ]}
+            data={getVariants(props.localTaskContent)}
             value={zoomVariantValue}
-            onChange={(string) => setZoomVariantValue(string)}
+            onChange={(s) => {
+              if (s != null) {
+                invoke('replace_teacher_pref', {
+                  prefs: JSON.stringify(props.prefsContent), 
+                  old: zoomVariantValue ? zoomVariantValue : "", 
+                  new: s
+                })
+                  .then(data => {
+                    if (typeof data == "string") 
+                      props.setPrefsContent(JSON.parse(data)); 
+                      console.log(data)
+                  })
+
+                let data = seekData(props.localTaskContent, s)
+                if (data != null) {
+                  invoke('edit_task', {
+                    name: props.localTaskContent.name, 
+                    start: null, 
+                    end: null, 
+                    id: data.id, 
+                    pwd: data.pwd
+                  });
+                  setIdValue(data.id);
+                  setPwdValue(data.pwd);
+                }
+                
+              }
+
+              setZoomVariantValue(s);
+            }}
           />
         <Space h="sm" />
         <Center>
@@ -83,7 +137,7 @@ const EditTaskWindow = function EditTaskWindow(props: any) {
           label="ID" />
         <Space w="sm" />
         <TextInput
-          value={pwdValue}
+          value={pwdValue ? pwdValue : ""}
           onChange={(event) => setPwdValue(event.currentTarget.value)}
           label="Пароль" />
         </Center>

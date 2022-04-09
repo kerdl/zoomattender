@@ -117,11 +117,15 @@ fn main() -> Result<()> {
             gui::auto_upd_turned_on,
             gui::set_automatic_upd,
             gui::get_tasks_from_scheduler,
+            gui::delete_all_tasks,
+            gui::set_task_state,
             gui::update_tasks,
+            gui::edit_task,
             gui::load_settings,
             gui::save_settings,
             gui::reset_settings,
             gui::load_prefs,
+            gui::replace_teacher_pref,
             gui::save_prefs,
             gui::load_windnames
         ])

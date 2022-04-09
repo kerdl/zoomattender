@@ -40,7 +40,7 @@ function EditGroupFrame(props: any) {
           <GroupInput 
             putError={false}
             icon={<Sausage size={18} />}
-            tasks={props.tasks} 
+            fullTasksContent={props.fullTasksContent} 
             value={props.settingsGroupType} 
             onChange={props.setSettingsGroupType}
           />

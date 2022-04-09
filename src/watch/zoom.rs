@@ -22,10 +22,10 @@ impl Zoom {
         )?;
 
         if info.status == BOOL(0) {
-            panic!("{}", format!(
+            Err(format!(
                 "wtf process not created!!! {:?}", 
                 unsafe {GetLastError()}
-            ))
+            ))?
         };
 
         Ok(())
