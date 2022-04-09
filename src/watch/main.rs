@@ -17,16 +17,19 @@ type Result<T> = std::result::Result<T, Box<dyn std::error::Error>>;
 #[clap(author, version, about, long_about = None)]
 struct Args {
     #[clap(short, long)]
-    end: Option<String>,
+    start: String,
     #[clap(short, long)]
-    id: Option<String>,
+    end: String,
+    #[clap(short, long)]
+    id: String,
     #[clap(short, long)]
     pwd: Option<String>,
 }
 
 fn main() -> Result<()> {
+    println!("{:?}", std::env::args());
     let _args = Args::parse();
-
+    
     let id = "9608553019"; //&args.id.unwrap();
     let pwd = "Y3NERFVlYVc3dkdUM2pxc21TanYxdz09"; //&args.pwd.unwrap();
 
@@ -37,12 +40,13 @@ fn main() -> Result<()> {
         "Waiting for Host".to_string()
     ]; //&args.window_names;
 
-    let wd = Watchdog::new(window_names, 3, 1, 2)?;
-    loop {
-        Zoom::run_from_id_pwd(id, pwd)?;
-        std::thread::sleep(time::Duration::from_secs(10));
-        wd.watch();
-        window::show_msgbox("pososesh) ok?", "hui")
-    }
+    //let wd = Watchdog::new(window_names, 3, 1, 2)?;
+    //loop {
+    //    Zoom::run_from_id_pwd(id, pwd)?;
+    //    std::thread::sleep(time::Duration::from_secs(10));
+    //    wd.watch();
+    //    window::show_msgbox("pososesh) ok?", "hui")
+    //}
+    Ok(())
 }
 

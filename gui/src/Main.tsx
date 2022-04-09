@@ -23,7 +23,7 @@ import {
 } from '@mantine/core';
 import { NotificationsProvider } from '@mantine/notifications';
 import {settings, prefs, tasks} from './JsonSchemas';
-import { updateRequest, loadSettings, loadPrefs, loadWindnames } from './BackendHelpers';
+import { loadSettings, loadPrefs, loadWindnames } from './BackendHelpers';
 
 const Main = function Main() {
   const [showInitialSetup, setShowInitialSetup] = useState(false);

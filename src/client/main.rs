@@ -16,7 +16,7 @@ use reqwest;
 use clap::Parser;
 use lazy_static::lazy_static;
 use winrt_notification::{Duration, Sound, Toast, Scenario};
-use app::window;
+use app::{window, args};
 use mappings::settings::Settings;
 use mappings::pref_variants::PrefVariants;
 use mappings::windnames::Windnames;
@@ -43,17 +43,10 @@ lazy_static! {
     };
 }
 
-#[derive(Parser, Debug)]
-#[clap(author, version, about, long_about = None)]
-struct Args {
-    #[clap(short, long, min_values(0))]
-    update: bool,
-}
-
 
 fn main() -> Result<()> {
 
-    let args = Args::parse();
+    let args = args::ClientArgs::parse();
 
     let scheduler = scheduler::Scheduler::new()?;
     if !scheduler.folder_exists(TASKS_PATH) {
@@ -123,6 +116,7 @@ fn main() -> Result<()> {
             gui::open_scheduler,
             gui::auto_upd_turned_on,
             gui::set_automatic_upd,
+            gui::get_tasks_from_scheduler,
             gui::update_tasks,
             gui::load_settings,
             gui::save_settings,

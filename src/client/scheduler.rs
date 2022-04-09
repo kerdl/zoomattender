@@ -1,7 +1,6 @@
 use windows::{
     Win32::Foundation::{
-        BSTR,
-        GetLastError
+        BSTR
     },
     Win32::System::{
         Com::{
@@ -68,8 +67,6 @@ impl Scheduler {
             //let reginfo: IRegistrationInfo = def.RegistrationInfo()?;
             let settings: ITaskSettings = def.Settings()?;
 
-            println!("{:?}", GetLastError());
-
         Ok(Self {
             name: None,
             folder: None,
@@ -135,12 +132,7 @@ impl Scheduler {
             let folder: ITaskFolder = self.service.GetFolder(
                 BSTR::from(path)
             )?;
-            Ok(folder.GetTask(
-                std::path::Path::new(path)
-                    .join(name)
-                    .to_str()
-                    .unwrap()
-            )?)
+            Ok(folder.GetTask(name)?)
         }
     }
 

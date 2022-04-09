@@ -16,14 +16,15 @@ import {
     Center,
     MantineProvider,
     LoadingOverlay,
-    Transition
+    Transition,
+    Switch
   
 } from '@mantine/core';
 import { X } from 'tabler-icons-react';
 import { showNotification } from '@mantine/notifications';
 import SettingsWindow from "./SettingsWindow";
 import EditTaskWindow from './EditTaskWindow';
-import { updateRequest, fetchTasks } from './BackendHelpers';
+import { fetchTasks } from './BackendHelpers';
 
 
 
@@ -37,6 +38,11 @@ const Menu = function Menu(props: any) {
       fetchTasks(props.settingsContent.tasks.api_url)
         .then(data => props.setTasks(data));
     }
+
+    useEffect(() => {
+      invoke('auto_upd_turned_on')
+        .then((s: any) => setUpdateAutomatically(s))
+    }, [])
 
     useEffect(() => {
       if (updateInProcess) {
@@ -127,10 +133,16 @@ const Menu = function Menu(props: any) {
         />
         <div>
           <div style={{ display: 'flex', flexDirection: 'row' }}>
-            <Button onClick={() => invoke('set_automatic_upd', {state: true}).then(data => console.log(data))}></Button>
+            <Button onClick={() => invoke('get_tasks_from_scheduler').then(data => console.log(data))} />
             {updateButton}
             <Space w='xl' />
-            <Checkbox
+            <Switch
+              checked={updateAutomatically}
+              onChange={(s) => {
+                const state = s.currentTarget.checked;
+                setUpdateAutomatically(state); 
+                invoke('set_automatic_upd', {state: state})
+              }}
               label={<Text size="md">Обновлять автоматически</Text>}
               color="ocean-blue"
             />

@@ -12,8 +12,10 @@ use crate::{
         tasks::Groups,
     }
 };
+use clap::Parser;
 
 type Result<T> = std::result::Result<T, Box<dyn std::error::Error>>;
+
 
 pub fn update_tasks(tasks: String, group: String) -> Result<Option<LocalTasks>> {
     let groups: Groups = serde_json::from_str(&tasks).unwrap();
@@ -40,6 +42,12 @@ pub fn update_tasks(tasks: String, group: String) -> Result<Option<LocalTasks>> 
     Ok(None)
 }
 
+pub fn parse_args<T: Parser>(args: &str) -> Option<T> {
+    let split_args = shlex::split(args)?;
+    let parsed = T::parse_from(split_args);
+    Some(parsed)
+}
+
 impl Task {
     pub fn make(&self, prefs: &PrefVariants) -> Result<LocalTask> {
         let mut id = self.zoom_data[0].data.id.to_string();
@@ -55,7 +63,7 @@ impl Task {
             }
         }
 
-        let args = format!("-end {} -id {} -pwd {}", self.end, id, pwd);
+        let args = format!("--start {} --end {} --id {} --pwd {}", self.start, self.end, id, pwd);
         Scheduler::new()?
             .name(self.name.clone())?
             .action(
@@ -69,11 +77,12 @@ impl Task {
             .folder(TASKS_PATH)?
             .register()?;
         Ok(LocalTask::new(
+            true,
             self.name.clone(), 
             self.start.clone(), 
             self.end.clone(), 
             id, 
-            pwd
+            Some(pwd)
         ))
     }
 }

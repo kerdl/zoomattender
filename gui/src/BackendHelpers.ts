@@ -8,10 +8,6 @@ async function fetchTasks(apiUrl: string) {
     return _json;
 }
 
-async function updateRequest() {
-    return new Promise(resolve => setTimeout(resolve, 2000, "content"))
-}
-
 async function loadSettings() {
     const _s = await invoke('load_settings');
     if (typeof _s == 'string') {
@@ -64,4 +60,4 @@ function getLanguages(langs: any) {
     return result; 
 }
 
-export { fetchTasks, updateRequest, loadSettings, saveSettings, loadPrefs, loadWindnames, getAllGroups, getLanguages };
+export { fetchTasks, loadSettings, saveSettings, loadPrefs, loadWindnames, getAllGroups, getLanguages };

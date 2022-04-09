@@ -56,6 +56,21 @@ interface tasksSchema {
     groups: groupSchema
 }
 
+// local tasks //
+interface localTaskSchema {
+    enabled: boolean,
+    name: string,
+    start: string,
+    end: string,
+    id: string,
+    pwd: string | null
+}
+
+interface localTasksSchema {
+    tasks: Array<localTaskSchema>
+}
+
 export type settings = settingsSchema;
 export type prefs = prefsSchema;
 export type tasks = tasksSchema;
+export type local_tasks = localTasksSchema;

@@ -1,3 +1,4 @@
+use app::args;
 use crate::{
     window,
     ABSOLUTE_DATA_FOLDER,
@@ -12,17 +13,24 @@ use crate::{
     mappings::tasks::Groups,
     mappings::pref_variants::PrefVariants,
     mappings::settings::Settings,
+    mappings::local_tasks::{LocalTasks, LocalTask},
     tasks
 };
+use clap::StructOpt;
 use windows::{
-    Win32::System::{
-        Threading::{
-            CREATE_NO_WINDOW
-        },
-    }
+    core::Interface,
+    Win32::{
+        Foundation::{BSTR},
+        System::{
+            Threading::{
+                CREATE_NO_WINDOW
+            },
+        TaskScheduler::IExecAction
+    }}
 };
 use serde_json;
 use chrono::Utc;
+use shlex;
 
 //type Result<T> = std::result::Result<T, Box<dyn std::error::Error>>;
 
@@ -31,11 +39,18 @@ use chrono::Utc;
 pub fn update_tasks(tasks: String, group: String) -> Result<String, String> {
     let result = tasks::update_tasks(tasks, group);
     match result {
-        Ok(Some(tasks)) => return Ok(
-            serde_json::to_string_pretty(&tasks).unwrap()
-        ),
-        Ok(None) => Ok("".to_string()),
-        Err(e) => Err(format!("{}", e))
+        Ok(Some(tasks)) => {
+            println!("got some tasks: {:?}", tasks.tasks); 
+            Ok(serde_json::to_string_pretty(&tasks).unwrap())
+        },
+        Ok(None) => {
+            println!("got no tasks");
+            Ok("".to_string())
+        },
+        Err(e) => {
+            println!("error while updating tasks: {}", e);
+            Err(format!("{}", e))
+        }
     }
 }
 
@@ -47,12 +62,15 @@ pub fn auto_upd_exists() -> bool {
 #[tauri::command]
 pub fn auto_upd_turned_on() -> bool {
     let sc = Scheduler::new().unwrap();
-    let task = sc.get_task(TASKS_PATH, AUTOMATIC_UPD_TASK_NAME).unwrap();
-    unsafe {task.Enabled().unwrap() != 0}
+    let task = sc.get_task(TASKS_PATH, AUTOMATIC_UPD_TASK_NAME);
+    if task.is_err() {
+        return false;
+    };
+    unsafe {task.unwrap().Enabled().unwrap() != 0}
 }
 
 #[tauri::command]
-pub fn set_automatic_upd(state: bool) {
+pub fn set_automatic_upd(state: bool) -> () {
     if state {
         if !auto_upd_exists() {
             let curr_exe = std::env::current_exe().unwrap();
@@ -67,12 +85,75 @@ pub fn set_automatic_upd(state: bool) {
                 .action(curr_exe_str, "--update", "").unwrap()
                 .time_trigger(&future_dt_fmt, None, Some("PT20M"), Some(""), None).unwrap()
                 .register().unwrap();
+
+            println!("created automatic update task");
+        }
+        else {
+            let sc = Scheduler::new().unwrap();
+            let task = sc.get_task(TASKS_PATH, AUTOMATIC_UPD_TASK_NAME).unwrap();
+            unsafe {task.SetEnabled(1);};
         }
 
-    } else {
-
+    }
+    else {
+        let sc = Scheduler::new().unwrap();
+        let task = sc.get_task(TASKS_PATH, AUTOMATIC_UPD_TASK_NAME);
+        if task.is_err() {
+            return;
+        };
+        unsafe {task.unwrap().SetEnabled(0);};
     }
 
+    println!("set automatic update to {}", state);
+}
+
+#[tauri::command]
+pub fn get_tasks_from_scheduler() -> Result<String, String> {
+    let sc = Scheduler::new().unwrap();
+    let tasks = sc.list_tasks(TASKS_PATH).unwrap();
+    println!("a");
+    unsafe {
+        let mut local_tasks = LocalTasks::new();
+        for t in tasks {
+            if !t.Name().unwrap().to_string().starts_with('_') {
+                let def = t.Definition().unwrap();
+                let actions = def.Actions().unwrap();
+                let time_trigger = actions.Item(1).unwrap();
+                let exec_action: IExecAction = time_trigger.cast().unwrap();
+    
+                let path = {
+                    let mut ppath = BSTR::from("");
+                    exec_action.Path(&mut ppath).unwrap();
+                    ppath.to_string()
+                };
+    
+                let args = {
+                    let mut pargmunet = BSTR::from("");
+                    exec_action.Arguments(&mut pargmunet).unwrap();
+                    pargmunet.to_string()
+                };
+    
+                let cmdline = format!("{} {}", path, args);
+
+                let parsed = tasks::parse_args::<args::WatchArgs>(&cmdline);
+                
+                if parsed.is_some() {
+                    let parsed = parsed.unwrap();
+                    let lt = LocalTask::new(
+                        t.Enabled().unwrap() != 0,
+                        t.Name().unwrap().to_string(),
+                        parsed.start,
+                        parsed.end,
+                        parsed.id,
+                        parsed.pwd
+                    );
+        
+                    local_tasks.tasks.push(lt);
+                }
+            }
+        };
+        Ok(serde_json::to_string_pretty(&local_tasks).unwrap())
+    }
 }
 
 #[tauri::command]
