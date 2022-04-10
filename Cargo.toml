@@ -33,6 +33,7 @@ winrt-notification = "0.5.1"
 reqwest = { version = "0.11", features = ["blocking"] }
 chrono = "0.4.19"
 shlex = "1.1.0"
+webbrowser = "0.6.0"
 
 [dependencies.windows]
 version = "0.34.0"

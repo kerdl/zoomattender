@@ -1,17 +1,7 @@
-use app::args;
-use crate::{
-    window,
-    ABSOLUTE_DATA_FOLDER,
-    SETTINGS_FILE,
-    PREFS_FILE,
-    WINDNAMES_FILE, 
-    TASKS_PATH,
-    WATCH_EXE,
-    AUTOMATIC_UPD_TASK_NAME,
+use app::{
+    consts::*,
     scheduler::Scheduler,
-    dt,
     mappings::{
-        tasks::Groups,
         pref_variants::PrefVariants,
         settings::Settings,
         local_tasks::{
@@ -19,9 +9,14 @@ use crate::{
             LocalTask
         },
     },
+    args
+};
+use crate::{
+    window,
+    dt,
     tasks
 };
-use clap::StructOpt;
+use webbrowser;
 use windows::{
     core::Interface,
     Win32::{
@@ -31,7 +26,6 @@ use windows::{
                 CREATE_NO_WINDOW
             },
         TaskScheduler::{
-            ITaskScheduler,
             ITimeTrigger,
             IExecAction
         }
@@ -39,7 +33,6 @@ use windows::{
 };
 use serde_json;
 use chrono::Utc;
-use shlex;
 
 //type Result<T> = std::result::Result<T, Box<dyn std::error::Error>>;
 
@@ -271,13 +264,21 @@ pub fn edit_task(
                     parsed.pwd = pwd;
                 }
 
-                let new_args = format!(
-                    "--start {} --end {} --id {} --pwd {}", 
+                let mut new_args = format!(
+                    "--start {} --end {} --id {}", 
                     parsed.start, 
                     parsed.end, 
                     parsed.id, 
-                    parsed.pwd.unwrap_or("".to_string())
                 );
+
+                if parsed.pwd.is_some() && parsed.pwd.clone().unwrap().len() > 0 {
+                    let pwd = parsed.pwd.clone().unwrap();
+                    new_args = format!(
+                        "{} --pwd {}", 
+                        new_args,
+                        pwd
+                    );
+                }
 
                 Scheduler::new().unwrap()
                     .name(name).unwrap()
@@ -337,8 +338,11 @@ pub fn load_prefs() -> String {
 }
 
 #[tauri::command]
-pub fn replace_teacher_pref(prefs: String, old: String, mut new: String) -> String {
+pub fn replace_teacher_pref(old: String, mut new: String) {
+    let prefs: String = load_prefs();
     let mut parsed: PrefVariants = serde_json::from_str(&prefs).unwrap();
+
+    println!("prefs: {}, old: {}, new: {}", prefs, old, new);
 
     if old.len() > 0 {
         let mut found = false;
@@ -358,15 +362,7 @@ pub fn replace_teacher_pref(prefs: String, old: String, mut new: String) -> Stri
     };
 
     let serialization = serde_json::to_string_pretty(&parsed).unwrap();
-
-    let _ = std::fs::write(
-        ABSOLUTE_DATA_FOLDER.join(PREFS_FILE)
-            .to_str()
-            .unwrap(),
-        &serialization
-    );
-
-    serialization
+    save_prefs(serialization);
 }
 
 #[tauri::command]
@@ -376,6 +372,16 @@ pub fn save_prefs(prefs: String) {
             .to_str()
             .unwrap(),
         prefs
+    );
+}
+
+#[tauri::command]
+pub fn reset_prefs() {
+    let _ = std::fs::write(
+        ABSOLUTE_DATA_FOLDER.join(PREFS_FILE)
+            .to_str()
+            .unwrap(),
+        &serde_json::to_string_pretty(&PrefVariants::default()).unwrap()
     );
 }
 
@@ -394,4 +400,9 @@ pub fn open_scheduler() {
         "cmd /c taskschd", 
         CREATE_NO_WINDOW
     ); 
+}
+
+#[tauri::command]
+pub fn open_link(link: String) {
+    let _ = webbrowser::open(&link);
 }

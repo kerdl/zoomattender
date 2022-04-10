@@ -24,6 +24,7 @@ import { X, Check } from 'tabler-icons-react';
 import { showNotification } from '@mantine/notifications';
 import SettingsWindow from "./SettingsWindow";
 import EditTaskWindow from './EditTaskWindow';
+import { NotAllTasksModal } from './NotAllTasksModal';
 import { fetchTasks } from './BackendHelpers';
 import { localTasks, localTask, prefs } from './JsonSchemas';
 
@@ -76,6 +77,13 @@ function EditModal(props: TaskControlsProps) {
 
 function AttendCheckbox(props: TaskControlsProps) {
   const [attendCheckboxState, setAttendCheckboxState] = useState(true);
+
+  useEffect(() => {
+    if (props.localTaskContent != null) {
+      setAttendCheckboxState(props.localTaskContent.enabled);
+    }
+  }, [props.localTaskContent])
+
   return (
     <>
       <Tooltip label="Посетить" key="attendCheckboxTooltip">
@@ -113,6 +121,7 @@ interface TasksTableProps {
 function TasksTable(props: TasksTableProps) {
   const [elements, setElements] = useState<null | Array<taskElements>>(null);
   const [rows, setRows] = useState<any>(null);
+  const [notAllTasksModalOpened, setNotAllTasksModalOpened] = useState(false);
 
   useEffect(() => {
     if (props.localTasksContent !== null) {
@@ -126,7 +135,7 @@ function TasksTable(props: TasksTableProps) {
             name = name.substring(0, SHORT_NAMES_LENGTH) + '...';
           }
 
-          let time = formatTime(new Date(t.end), new Date(t.end))
+          let time = formatTime(new Date(t.start), new Date(t.end))
 
           const checkbox = <AttendCheckbox 
             localTaskContent={t} 
@@ -200,11 +209,14 @@ function TasksTable(props: TasksTableProps) {
 
   return (
     <>
+      <NotAllTasksModal 
+        opened={notAllTasksModalOpened} 
+        onClose={() => setNotAllTasksModalOpened((s) => !s)} />
       <ScrollArea style={{ height: 250 }}>
         <Table highlightOnHover>
           <thead>
             <tr>
-              <th>хуй</th>
+              <th></th>
               <th>Имя</th>
               <th>Время</th>
               <th>Изменить</th>
@@ -212,6 +224,17 @@ function TasksTable(props: TasksTableProps) {
           </thead>
           <tbody>{rows}</tbody>
         </Table>
+        <Space h='md' />
+        <Center>
+          <Button 
+            compact 
+            variant='subtle' 
+            color='gray'
+            onClick={() => setNotAllTasksModalOpened((s) => !s)}>
+          Не все задачи?
+          </Button>
+        </Center>
+        
       </ScrollArea>
     </>
   );

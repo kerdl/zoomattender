@@ -1,6 +1,6 @@
 use clap::Parser;
 
-#[derive(clap::Parser, Debug)]
+#[derive(clap::Parser, Debug, Clone)]
 #[clap(author, version, about, long_about = None)]
 pub struct WatchArgs {
     #[clap(short, long)]

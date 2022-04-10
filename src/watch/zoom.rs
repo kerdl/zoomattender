@@ -10,20 +10,34 @@ use windows::{
 type Result<T> = std::result::Result<T, Box<dyn std::error::Error>>;
 
 
-pub struct Zoom ();
+pub struct Zoom {
+    path: String,
+}
 impl Zoom {
-    pub fn run_from_id_pwd(id: &str, pwd: &str) -> Result<()> {
+    pub fn new(path: String) -> Self {
+        Self {
+            path
+        }
+    }
+
+    pub fn run_from_id_pwd(&self, id: &str, pwd: &str) -> Result<()> {
         let args = FmtString::zoom_args(id, pwd);
-        let cmdline = FmtString::zoom_cmdline(&args);
+
+        let mut cmdline = "cmd /c ".to_string();
+
+        let mut path = self.path.clone();
+        cmdline.push_str(' ');
+        cmdline.push_str(&self.path);
 
         let info = window::create_process(
-            &cmdline, 
+            &path, 
             CREATE_NO_WINDOW
         )?;
 
         if info.status == BOOL(0) {
             Err(format!(
-                "wtf process not created!!! {:?}", 
+                "wtf process {} not created!!! {:?}",
+                path, 
                 unsafe {GetLastError()}
             ))?
         };

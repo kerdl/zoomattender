@@ -22,10 +22,11 @@ import {
 
 } from '@mantine/core';
 import { NotificationsProvider } from '@mantine/notifications';
-import { settings, prefs, fullTasks, localTasks } from './JsonSchemas';
+import { settings, prefs, fullTasks, localTasks, localTask } from './JsonSchemas';
 import { loadSettings, loadPrefs, loadWindnames } from './BackendHelpers';
 
-const Main = function Main() {
+
+function Main() {
   const [showInitialSetup, setShowInitialSetup] = useState(false);
   const [fromInitialSetup, setFromInitialSetup] = useState(false);
 
@@ -58,6 +59,7 @@ const Main = function Main() {
     }
 
     async function _getTasksFromScheduler() {
+      console.log('Getting tasks from scheduler');
       const _t: any = await invoke('get_tasks_from_scheduler');
       let outer = JSON.parse(_t);
 
@@ -65,6 +67,7 @@ const Main = function Main() {
         const t = outer.tasks[i];
         outer.tasks[i].description = JSON.parse(t.description);
       }
+      console.log()
 
       setLocalTasksContent(outer);
       console.log('Tasks from scheduler loaded');
@@ -100,6 +103,7 @@ const Main = function Main() {
         
         setShowInitialSetup={setShowInitialSetup}/>}
       {!showInitialSetup && <Menu 
+        langs={windnamesContent}
         fromInitialSetup={fromInitialSetup}
 
         fullTasksContent={fullTasksContent}

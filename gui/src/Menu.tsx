@@ -22,7 +22,7 @@ import {
     Group
   
 } from '@mantine/core';
-import { X, Check } from 'tabler-icons-react';
+import { X, Check, InfoCircle } from 'tabler-icons-react';
 import { showNotification } from '@mantine/notifications';
 import SettingsWindow from "./SettingsWindow";
 import EditTaskWindow from './EditTaskWindow';
@@ -80,6 +80,7 @@ const Menu = function Menu(props: any) {
         height: '100vh'
       }}>
         {props.settingsContent && <SettingsWindow
+          langs={props.langs}
           settingsOpened={settingsOpened}
           setSettingsOpened={setSettingsOpened}
           content={props.settingsContent}
@@ -133,7 +134,15 @@ const Menu = function Menu(props: any) {
               variant="outline"
               compact
               leftIcon={<ArrowUpRight />}
-              onClick={() => invoke('open_scheduler')}>
+              onClick={() => {
+                invoke('open_scheduler')
+                  .then(() => showNotification({
+                    color: 'blue',
+                    icon: <InfoCircle />,
+                    autoClose: 10000,
+                    message: 'Ищи папку "ZoomAttender"',
+                }))
+              }}>
             Открыть планировщик заданий
             </Button>
           </Center>

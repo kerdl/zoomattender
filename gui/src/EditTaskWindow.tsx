@@ -12,26 +12,25 @@ import {
   Select,
   Image,
   ScrollArea,
+  Group,
   Text
 } from '@mantine/core';
-import { TimeRangeInput} from '@mantine/dates'
+import { X, Check } from 'tabler-icons-react';
+import { TimeRangeInput } from '@mantine/dates'
+import { showNotification } from '@mantine/notifications';
 import { useState } from 'react';
 import { invoke } from '@tauri-apps/api/tauri';
 import { localTask, prefs } from './JsonSchemas';
-
-function seekVariant(localTask: localTask, id: string) {
-  for (let i = 0; i < localTask.description.zoom_data.length; i++) {
-    const v = localTask.description.zoom_data[i];
-    if (v.data.id == id) {
-      return v.name;
-    }
-  }
-  return null;
-}
+import { validId } from './Strings';
 
 function seekData(localTask: localTask, variant: string) {
-  for (let i = 0; i < localTask.description.zoom_data.length; i++) {
-    const v = localTask.description.zoom_data[i];
+  let parsing = localTask.description;
+  if (typeof localTask.description == "string") {
+    parsing = JSON.parse(localTask.description);
+  }
+
+  for (let i = 0; i < parsing.zoom_data.length; i++) {
+    const v = parsing.zoom_data[i];
     if (v.name == variant) {
       return v.data;
     }
@@ -39,13 +38,40 @@ function seekData(localTask: localTask, variant: string) {
   return null;
 }
 
+function seekVariant(localTask: localTask, id: string) {
+  let parsing = localTask.description;
+  if (typeof localTask.description == "string") {
+    parsing = JSON.parse(localTask.description);
+  }
+
+  for (let i = 0; i < parsing.zoom_data.length; i++) {
+    const v = parsing.zoom_data[i];
+    if (v.data.id == id) {
+      return v.name;
+    }
+  }
+  return null;
+}
+
 function getVariants(localTask: localTask) {
   let variants = [];
-  for (let i = 0; i < localTask.description.zoom_data.length; i++) {
-    const v = localTask.description.zoom_data[i];
+
+  let parsing = localTask.description;
+  if (typeof localTask.description == "string") {
+    parsing = JSON.parse(localTask.description);
+  }
+
+  for (let i = 0; i < parsing.zoom_data.length; i++) {
+    const v = parsing.zoom_data[i];
     variants.push(v.name);
   }
   return variants;
+}
+
+function formatDateToWindowsUtcPlus3(date: Date) {
+  return new Date(
+    date.getTime() - date.getTimezoneOffset() * 60000
+  ).toISOString().slice(0, -5) + '+03:00';
 }
 
 interface EditTaskWindowProps {
@@ -61,10 +87,61 @@ function EditTaskWindow(props: EditTaskWindowProps) {
     new Date(props.localTaskContent.end)
   ])
   const [zoomVariantValue, setZoomVariantValue] = useState<string | null>(
-    seekVariant(props.localTaskContent, props.localTaskContent.id)
+    props.localTaskContent.description ? 
+    seekVariant(props.localTaskContent, props.localTaskContent.id) : null
   )
   const [idValue, setIdValue] = useState(props.localTaskContent.id)
   const [pwdValue, setPwdValue] = useState(props.localTaskContent.pwd)
+
+  const required = [
+    !!timeValue[0],
+    !!timeValue[1],
+    !!idValue
+  ]
+
+  function resetTaskContent() {
+    setZoomVariantValue(props.localTaskContent.description ? 
+      seekVariant(props.localTaskContent, props.localTaskContent.id) : null
+    )
+    setIdValue(props.localTaskContent.id)
+    setPwdValue(props.localTaskContent.pwd)
+  }
+
+  function setVariant(newVariant: string) {
+    if (newVariant != null) {
+      invoke('replace_teacher_pref', {
+        old: zoomVariantValue ? zoomVariantValue : "", 
+        new: newVariant
+      })
+    }
+  }
+
+  function saveTaskContent() {
+    if (required.every(v => v == true)) {
+      if (zoomVariantValue) setVariant(zoomVariantValue);
+      invoke('edit_task', {
+        name: props.localTaskContent.name, 
+        start: formatDateToWindowsUtcPlus3(timeValue[0]), 
+        end: formatDateToWindowsUtcPlus3(timeValue[1]), 
+        id: idValue, 
+        pwd: pwdValue
+      })
+        .then(() => showNotification({
+          color: 'green',
+          icon: <Check />,
+          autoClose: 3000,
+          message: 'Сохранено',
+        }));
+    }
+    else {
+      showNotification({
+        color: 'red',
+        icon: <X />,
+        autoClose: 3000,
+        message: 'Заполнено не всё',
+      });
+    }
+  }
 
   return (
     <Modal
@@ -96,35 +173,15 @@ function EditTaskWindow(props: EditTaskWindowProps) {
             placeholder="Выбрать"
             data={getVariants(props.localTaskContent)}
             value={zoomVariantValue}
-            onChange={(s) => {
-              if (s != null) {
-                invoke('replace_teacher_pref', {
-                  prefs: JSON.stringify(props.prefsContent), 
-                  old: zoomVariantValue ? zoomVariantValue : "", 
-                  new: s
-                })
-                  .then(data => {
-                    if (typeof data == "string") 
-                      props.setPrefsContent(JSON.parse(data)); 
-                      console.log(data)
-                  })
-
-                let data = seekData(props.localTaskContent, s)
-                if (data != null) {
-                  invoke('edit_task', {
-                    name: props.localTaskContent.name, 
-                    start: null, 
-                    end: null, 
-                    id: data.id, 
-                    pwd: data.pwd
-                  });
-                  setIdValue(data.id);
-                  setPwdValue(data.pwd);
+            onChange={(newVariant) => {
+              if (newVariant) {
+                let d = seekData(props.localTaskContent, newVariant)
+                if (d) {
+                  setIdValue(d.id)
+                  setPwdValue(d.pwd)
                 }
-                
               }
-
-              setZoomVariantValue(s);
+              setZoomVariantValue(newVariant);
             }}
           />
         <Space h="sm" />
@@ -132,7 +189,13 @@ function EditTaskWindow(props: EditTaskWindowProps) {
         <TextInput
           required
           value={idValue}
-          onChange={(event) => setIdValue(event.currentTarget.value)}
+          onChange={(event) => {
+            setIdValue(validId(event.currentTarget.value))
+            if (typeof event.currentTarget.value == "string") {
+              let v = seekVariant(props.localTaskContent, event.currentTarget.value)
+              setZoomVariantValue(v);
+            }
+          }}
           error={idValue.length <= 0 ? true : false}
           label="ID" />
         <Space w="sm" />
@@ -142,6 +205,23 @@ function EditTaskWindow(props: EditTaskWindowProps) {
           label="Пароль" />
         </Center>
       </div>
+      <Space h={20} />
+      <Center>
+        <Group>
+          <Button
+            compact
+            color='gray'
+            onClick={() => resetTaskContent()}>
+            <Text weight={30} size='sm'>Отменить</Text>
+          </Button>
+          <Button
+            compact
+            color='blue'
+            onClick={() => saveTaskContent()}>
+            <Text weight={30} size='sm'>Сохранить</Text>
+          </Button>
+        </Group>
+      </Center>
     </Modal>
   )
 }

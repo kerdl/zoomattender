@@ -25,7 +25,7 @@ import React, { useEffect, useState } from 'react';
 import { GroupInput } from './CommonElement';
 import { settings } from './JsonSchemas';
 import { motion } from "framer-motion";
-import { fetchTasks, getAllGroups, loadSettings, saveSettings } from './BackendHelpers';
+import { fetchTasks, getAllGroups, loadSettings, saveSettings, getLanguages } from './BackendHelpers';
 import { invoke } from '@tauri-apps/api/tauri';
 
 const ResetConfirm = function ResetConfirm(props: any) {
@@ -239,10 +239,7 @@ const SettingsWindow = function SettingsWindow(props: any) {
                 error={settingsZoomLanguage && settingsZoomLanguage.length <= 0 ? true : false}
                 label="Язык Zoom"
                 placeholder="Выбрать"
-                data={[
-                  { value: 'ru', label: 'Русский' },
-                  { value: 'en', label: 'English' }
-                ]}
+                data={props.langs ? getLanguages(props.langs) : ["Загрузка..."]}
                 disabled={!settingsDoRejoin}
               />
 
