@@ -3,7 +3,7 @@ use crate::window;
 use windows::{
     Win32::{
         Foundation::{BOOL, GetLastError},
-        System::Threading::CREATE_NO_WINDOW
+        System::Threading::{CREATE_NO_WINDOW, CREATE_NEW_CONSOLE}
     }
 };
 
@@ -23,21 +23,25 @@ impl Zoom {
     pub fn run_from_id_pwd(&self, id: &str, pwd: &str) -> Result<()> {
         let args = FmtString::zoom_args(id, pwd);
 
-        let mut cmdline = "cmd /c ".to_string();
+        let mut cmdline = "cmd /c".to_string();
 
-        let mut path = self.path.clone();
-        cmdline.push_str(' ');
+        let path = self.path.clone();
+        cmdline.push_str(" ");
         cmdline.push_str(&self.path);
+        cmdline.push_str(" ");
+        cmdline.push_str(&args);
+
+        println!("{}", cmdline);
 
         let info = window::create_process(
-            &path, 
+            &cmdline, 
             CREATE_NO_WINDOW
         )?;
 
         if info.status == BOOL(0) {
             Err(format!(
                 "wtf process {} not created!!! {:?}",
-                path, 
+                cmdline, 
                 unsafe {GetLastError()}
             ))?
         };

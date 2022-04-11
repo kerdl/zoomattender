@@ -24,9 +24,13 @@ import {
 import { NotificationsProvider } from '@mantine/notifications';
 import { settings, prefs, fullTasks, localTasks, localTask } from './JsonSchemas';
 import { loadSettings, loadPrefs, loadWindnames } from './BackendHelpers';
+import { WatchRejoinConfirm } from './WatchRejoinConfirm';
 
 
 function Main() {
+  const [session, setSession] = useState("");
+  const [timeout, setTimeout] = useState(0);
+
   const [showInitialSetup, setShowInitialSetup] = useState(false);
   const [fromInitialSetup, setFromInitialSetup] = useState(false);
 
@@ -36,62 +40,100 @@ function Main() {
   const [prefsContent, setPrefsContent] = useState<null | prefs>(null);
   const [windnamesContent, setWindnamesContent] = useState<null | any>(null);
 
+  function doDisplayLoader() {
+    if (session == "client") {
+      return (
+        settingsContent && 
+        prefsContent && 
+        localTasksContent ? 
+        false : true
+      );
+    }
+    else if (session == "watch") {
+      return false;
+    }
+    else {
+      return true
+    }
+  }
+
+  async function _getSession() {
+    const _s = await invoke('session');
+    if (typeof _s === "string") {
+      console.log('Session:', _s);
+      setSession(_s)
+    };
+  }
+
+  async function _getTimeout() {
+    const _t = await invoke('timeout');
+    if (typeof _t === "number") {
+      console.log('Timeout:', _t);
+      setTimeout(_t)
+    };
+  }
+
+  async function _loadSettings() {
+    const _s = await loadSettings();
+    setSettingsContent(_s);
+      if (
+        _s && 
+        (!_s.tasks.group || 
+        !_s.rejoin.zoom_language))
+        setShowInitialSetup(true)
+        setFromInitialSetup(true);
+    }
+
+  async function _loadPrefs() {
+    const _p = await loadPrefs();
+    setPrefsContent(_p);
+  }
+
+  async function _loadWindnames() {
+    const _w = await loadWindnames();
+    setWindnamesContent(_w);
+  }
+
+  async function _getTasksFromScheduler() {
+    console.log('Getting tasks from scheduler');
+    const _t: any = await invoke('get_tasks_from_scheduler');
+    let outer = JSON.parse(_t);
+
+    for (let i = 0; i < outer.tasks.length; i++) {
+      const t = outer.tasks[i];
+      outer.tasks[i].description = JSON.parse(t.description);
+    }
+
+    setLocalTasksContent(outer);
+    console.log('Tasks from scheduler loaded');
+  }
+
   useEffect(() => {
-    async function _loadSettings() {
-      const _s = await loadSettings();
-      setSettingsContent(_s);
-        if (
-          _s && 
-          (!_s.tasks.group || 
-          !_s.rejoin.zoom_language))
-          setShowInitialSetup(true)
-          setFromInitialSetup(true);
-      }
-
-    async function _loadPrefs() {
-      const _p = await loadPrefs();
-      setPrefsContent(_p);
-    }
-
-    async function _loadWindnames() {
-      const _w = await loadWindnames();
-      setWindnamesContent(_w);
-    }
-
-    async function _getTasksFromScheduler() {
-      console.log('Getting tasks from scheduler');
-      const _t: any = await invoke('get_tasks_from_scheduler');
-      let outer = JSON.parse(_t);
-
-      for (let i = 0; i < outer.tasks.length; i++) {
-        const t = outer.tasks[i];
-        outer.tasks[i].description = JSON.parse(t.description);
-      }
-      console.log()
-
-      setLocalTasksContent(outer);
-      console.log('Tasks from scheduler loaded');
-    }
-
-    _loadSettings();
-    _loadPrefs();
-    _loadWindnames();
-    _getTasksFromScheduler();
-  
+    _getSession();
   }, [])
+
+  useEffect(() => {
+    if (session === "client") {
+      _loadSettings();
+      _loadPrefs();
+      _loadWindnames();
+      _getTasksFromScheduler(); 
+    }
+    else if (session === "watch") {
+      _getTimeout();
+    }
+  }, [session])
 
   return (
     <NotificationsProvider position='top-center' containerWidth={350}>
       <LoadingOverlay 
-        visible={
-          settingsContent && 
-          prefsContent && 
-          localTasksContent ? 
-          false : true
-        }
+        visible={doDisplayLoader()}
         overlayOpacity={1} 
         overlayColor="#1e1e1e"/>
-      {showInitialSetup && <InitialSetupWindow 
+
+      {session === "watch" && <WatchRejoinConfirm />}
+
+      {session === "client" && showInitialSetup && <InitialSetupWindow 
         toggleFunc={setShowInitialSetup}
         langs={windnamesContent}
 
@@ -102,7 +144,8 @@ function Main() {
         setSettingsContent={setSettingsContent}
         
         setShowInitialSetup={setShowInitialSetup}/>}
-      {!showInitialSetup && <Menu 
+
+      {session === "client" && !showInitialSetup && <Menu 
         langs={windnamesContent}
         fromInitialSetup={fromInitialSetup}
 

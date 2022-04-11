@@ -59,87 +59,85 @@ function InitialSetupWindow(props: any) {
     }, [props.settingsContent])
 
     return (
-      <>
-        <Container size={400} style={{marginTop: "100px"}}>
-          <Stepper 
-            active={active} 
-            onStepClick={setActive} 
-          >
-            <Stepper.Step 
-              label="Группа" 
-              description={
-                settingsGroupSelect ? 
-                settingsGroupSelect?.substring(6, 0) : 
-                settingsGroupType?.substring(6, 0)}
-              color={!settingsGroupSelect && !settingsGroupType ? "red" : "blue"}
-              completedIcon={!settingsGroupSelect && !settingsGroupType ? <CircleX /> : null}>
-              <Space h={80}/>
-              <EditGroupFrame 
-                fullTasksContent={props.fullTasksContent}
-                settingsGroupSelect={settingsGroupSelect}
-                settingsGroupType={settingsGroupType}
-                setSettingsGroupSelect={setSettingsGroupSelect}
-                setSettingsGroupType={setSettingsGroupType} />
-            </Stepper.Step>
-            <Stepper.Step 
-              label="Язык Zoom"
-              description={
-                props.langs && settingsZoomLanguage && settingsDoRejoin ? 
-                props.langs[settingsZoomLanguage].label : "Откл."
-              }
-              color={settingsDoRejoin && !settingsZoomLanguage ? "red" : "blue"}
-              completedIcon={settingsDoRejoin && !settingsZoomLanguage ? <CircleX /> : null}>
-              <Space h={80}/>
-              <EnterZoomLanguageFrame 
-                nextStep={nextStep}
-                settingsZoomLanguage={settingsZoomLanguage}
-                setSettingsZoomLanguage={setSettingsZoomLanguage} 
-                settingsDoRejoin={settingsDoRejoin}
-                setSettingsDoRejoin={setSettingsDoRejoin}
-                langs={props.langs}/>
-            </Stepper.Step>
-            <Stepper.Completed>
-              <Space h={90}/>
-              <FinishSetup 
-                toggleFunc={props.toggleFunc}
-                modifiedContent={modifySettings(
-                  props.settingsContent, 
-                  settingsGroupSelect ? settingsGroupSelect : settingsGroupType, 
-                  settingsZoomLanguage, 
-                  settingsDoRejoin
-                )}
-                setSettingsContent={props.setSettingsContent}
-                setShowInitialSetup={props.setShowInitialSetup}
-                allDone={
-                  (settingsGroupSelect || settingsGroupType) 
-                  && 
-                  (settingsZoomLanguage || !settingsDoRejoin)}
-              />
-            </Stepper.Completed>
-          </Stepper>
-          <Center>
-          <Container style={{
-            position: 'absolute', 
-            bottom: '0px',
-            marginBottom: '100px'
-          }}>
-            <Group position="center" mt="xl">
-              <Button 
-                variant="default" 
-                onClick={prevStep}
-                disabled={active==0}>
-                Назад
-              </Button>
-              <Button 
-                onClick={nextStep}
-                disabled={active==2}>
-                Далее
-              </Button>
-            </Group>
-          </Container>
-          </Center>
+      <Container size={400} style={{marginTop: "100px"}}>
+        <Stepper 
+          active={active} 
+          onStepClick={setActive} 
+        >
+          <Stepper.Step 
+            label="Группа" 
+            description={
+              settingsGroupSelect ? 
+              settingsGroupSelect?.substring(6, 0) : 
+              settingsGroupType?.substring(6, 0)}
+            color={!settingsGroupSelect && !settingsGroupType ? "red" : "blue"}
+            completedIcon={!settingsGroupSelect && !settingsGroupType ? <CircleX /> : null}>
+            <Space h={80}/>
+            <EditGroupFrame 
+              fullTasksContent={props.fullTasksContent}
+              settingsGroupSelect={settingsGroupSelect}
+              settingsGroupType={settingsGroupType}
+              setSettingsGroupSelect={setSettingsGroupSelect}
+              setSettingsGroupType={setSettingsGroupType} />
+          </Stepper.Step>
+          <Stepper.Step 
+            label="Язык Zoom"
+            description={
+              props.langs && settingsZoomLanguage && settingsDoRejoin ? 
+              props.langs[settingsZoomLanguage].label : "Откл."
+            }
+            color={settingsDoRejoin && !settingsZoomLanguage ? "red" : "blue"}
+            completedIcon={settingsDoRejoin && !settingsZoomLanguage ? <CircleX /> : null}>
+            <Space h={80}/>
+            <EnterZoomLanguageFrame 
+              nextStep={nextStep}
+              settingsZoomLanguage={settingsZoomLanguage}
+              setSettingsZoomLanguage={setSettingsZoomLanguage} 
+              settingsDoRejoin={settingsDoRejoin}
+              setSettingsDoRejoin={setSettingsDoRejoin}
+              langs={props.langs}/>
+          </Stepper.Step>
+          <Stepper.Completed>
+            <Space h={90}/>
+            <FinishSetup 
+              toggleFunc={props.toggleFunc}
+              modifiedContent={modifySettings(
+                props.settingsContent, 
+                settingsGroupSelect ? settingsGroupSelect : settingsGroupType, 
+                settingsZoomLanguage, 
+                settingsDoRejoin
+              )}
+              setSettingsContent={props.setSettingsContent}
+              setShowInitialSetup={props.setShowInitialSetup}
+              allDone={
+                (settingsGroupSelect || settingsGroupType) 
+                && 
+                (settingsZoomLanguage || !settingsDoRejoin)}
+            />
+          </Stepper.Completed>
+        </Stepper>
+        <Center>
+        <Container style={{
+          position: 'absolute', 
+          bottom: '0px',
+          marginBottom: '100px'
+        }}>
+          <Group position="center" mt="xl">
+            <Button 
+              variant="default" 
+              onClick={prevStep}
+              disabled={active==0}>
+              Назад
+            </Button>
+            <Button 
+              onClick={nextStep}
+              disabled={active==2}>
+              Далее
+            </Button>
+          </Group>
         </Container>
-      </>
+        </Center>
+      </Container>
     );
 }
 

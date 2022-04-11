@@ -54,9 +54,9 @@
     },
     "windows": [
       {
-        "title": "Zoom Attender",
-        "width": 600,
-        "height": 600,
+        "title": "Zoom Attender Watch",
+        "width": 400,
+        "height": 350,
         "resizable": false,
         "fullscreen": false
       }

@@ -95,6 +95,7 @@ fn main() -> Result<()> {
 
     tauri::Builder::default()
         .invoke_handler(tauri::generate_handler![
+            gui::session,
             gui::open_scheduler,
             gui::open_link,
             gui::auto_upd_turned_on,
@@ -113,7 +114,7 @@ fn main() -> Result<()> {
             gui::save_prefs,
             gui::load_windnames
         ])
-        .run(tauri::generate_context!())
+        .run(tauri::generate_context!(".\\tauri.client.conf.json"))
         .expect("error while running tauri application");
     Ok(())
 

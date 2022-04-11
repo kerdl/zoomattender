@@ -38,6 +38,11 @@ use chrono::Utc;
 
 
 #[tauri::command]
+pub fn session() -> String {
+    return "client".to_string();
+}
+
+#[tauri::command]
 pub fn update_tasks(tasks: String, group: String) -> Result<String, String> {
     delete_all_tasks();
     let result = tasks::update_tasks(tasks, group);
