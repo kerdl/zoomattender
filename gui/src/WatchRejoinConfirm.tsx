@@ -25,20 +25,39 @@ import {
   Paper,
   TextInput
 } from '@mantine/core';
+import { appWindow } from '@tauri-apps/api/window'
 import { useState, useEffect } from 'react';
 import { ZoomQuestion } from 'tabler-icons-react';
 
+interface WatchRejoinConfirmProps {
+  timeout: number | null;
+  setTimeout: (timeout: number) => void;
+}
 
-function WatchRejoinConfirm() {
+function WatchRejoinConfirm(props: WatchRejoinConfirmProps) {
     const [timerFill, setTimerFill] = useState(100);
+
+    useEffect(() => {
+      appWindow.center();
+      appWindow.setFocus();
+    }, [])
 
     // smoothly decrement timerFill in 10 seconds
     useEffect(() => {
-        const interval = setInterval(() => {
+        if (props.timeout !== null) {
+          const interval = setInterval(() => {
             setTimerFill((current) => (current > 0 ? current - 1 : current));
-        }, 200);
-        return () => clearInterval(interval);
-    }, []);
+          }, props.timeout * 10);
+          return () => clearInterval(interval);
+        }
+    }, [props.timeout]);
+
+    //close window if timer is over
+    useEffect(() => {
+        if (props.timeout !== null && timerFill === 0) {
+          appWindow.close();
+        }
+    }, [timerFill]);
 
     return (
       <Container style={{

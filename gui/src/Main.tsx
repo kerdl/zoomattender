@@ -29,7 +29,7 @@ import { WatchRejoinConfirm } from './WatchRejoinConfirm';
 
 function Main() {
   const [session, setSession] = useState("");
-  const [timeout, setTimeout] = useState(0);
+  const [timeout, setTimeout] = useState<null | number>(null);
 
   const [showInitialSetup, setShowInitialSetup] = useState(false);
   const [fromInitialSetup, setFromInitialSetup] = useState(false);
@@ -50,7 +50,9 @@ function Main() {
       );
     }
     else if (session == "watch") {
-      return false;
+      return (
+        timeout != null ? false : true
+      );
     }
     else {
       return true
@@ -131,7 +133,10 @@ function Main() {
         overlayOpacity={1} 
         overlayColor="#1e1e1e"/>
 
-      {session === "watch" && <WatchRejoinConfirm />}
+      {session === "watch" && <WatchRejoinConfirm 
+        timeout={timeout}
+        setTimeout={setTimeout}
+      />}
 
       {session === "client" && showInitialSetup && <InitialSetupWindow 
         toggleFunc={setShowInitialSetup}

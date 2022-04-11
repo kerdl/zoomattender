@@ -95,8 +95,12 @@ fn main() -> Result<()> {
                     gui::session,
                     gui::timeout
                 ])
-                .run(tauri::generate_context!(".\\tauri.watch.conf.json"))
-                .expect("error while running tauri application");
+                .build(tauri::generate_context!(".\\tauri.watch.conf.json"))
+                .expect("error while running tauri application")
+                .run(|app_handle, e| {println!("{:?}", e);});
+                
+
+            println!("BYE!!!");
         }
     }
     else {
