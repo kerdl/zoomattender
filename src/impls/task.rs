@@ -1,4 +1,5 @@
 use crate::{
+    args,
     scheduler::Scheduler,
     consts::*,
     mappings::{
@@ -32,19 +33,19 @@ impl Task {
             pwd = self.zoom_data[0].data.pwd.clone();
         }
 
-        let mut args = format!("--start {} --end {} --id {}", self.start, self.end, id);
-
-        if pwd.len() > 0 {
-            args = format!("{} --pwd {}", args, pwd);
-        }
+        let args = args::WatchArgs::new(
+            self.name.clone(), 
+            self.start.clone(), 
+            self.end.clone(), 
+            id.clone(), 
+            Some(pwd.clone())
+        ).stringify();
 
         Scheduler::new()?
             .name(self.name.clone())?
             .description(self_serialize.clone())?
             .action(
-                ABSOLUTE_DATA_FOLDER
-                    .parent()
-                    .unwrap()
+                ABSOLUTE_FOLDER
                     .join(WATCH_EXE)
                     .to_str()
                     .unwrap(), &args, "")?

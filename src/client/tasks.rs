@@ -1,10 +1,7 @@
 use app::{
     consts::*,
-    scheduler::Scheduler,
     mappings::{
         local_tasks::LocalTasks,
-        local_tasks::LocalTask,
-        tasks::Task,
         pref_variants::PrefVariants,
         tasks::Groups,
     }

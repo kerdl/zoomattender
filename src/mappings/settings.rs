@@ -54,7 +54,7 @@ impl Settings {
             rejoin: Rejoin {
                 do_rejoin: true,
                 do_not_watch: 20,
-                max_no_windows: 2,
+                max_no_windows: 3,
                 zoom_language: None,
                 rejoin_confirm_await: 10,
                 do_not_rejoin_end: 10

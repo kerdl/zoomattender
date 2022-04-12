@@ -5,19 +5,27 @@ use windows::{
     Win32::{
         Foundation::BOOL,
         System::Threading::{
+            CREATE_NO_WINDOW,
             PROCESS_INFORMATION,
             PROCESS_CREATION_FLAGS,
             STARTUPINFOEXA,
             CreateProcessA,
         },
-        UI::WindowsAndMessaging::{
-            MessageBoxA,
-            MB_OK
-        }
     }
 };
 
 type Result<T> = std::result::Result<T, Box<dyn std::error::Error>>;
+
+pub fn to_cmdline(line: &str) -> String {
+    format!("cmd /c {}", line)
+}
+
+pub fn kill_all(name: &str) {
+    let _ = create_process(
+        &format!("cmd /c taskkill /IM \"{}\" /F", name), 
+        CREATE_NO_WINDOW
+    );
+}
 
 #[derive(Debug)]
 pub struct ProcessInfo {
@@ -54,10 +62,4 @@ pub fn create_process(
         info: pi,
         startup: si
     })
-}
-
-pub fn show_msgbox(text: &str, caption: &str) {
-    unsafe {
-        MessageBoxA(None, text, caption, MB_OK);
-    }
 }

@@ -20,16 +20,10 @@ impl Zoom {
         }
     }
 
-    pub fn run_from_id_pwd(&self, id: &str, pwd: &str) -> Result<()> {
+    pub fn run_from_id_pwd(&self, id: &str, pwd: Option<&str>) -> Result<()> {
         let args = FmtString::zoom_args(id, pwd);
 
-        let mut cmdline = "cmd /c".to_string();
-
-        let path = self.path.clone();
-        cmdline.push_str(" ");
-        cmdline.push_str(&self.path);
-        cmdline.push_str(" ");
-        cmdline.push_str(&args);
+        let cmdline = window::to_cmdline(&format!("{} {}", self.path, args));
 
         println!("{}", cmdline);
 

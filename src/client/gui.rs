@@ -269,21 +269,9 @@ pub fn edit_task(
                     parsed.pwd = pwd;
                 }
 
-                let mut new_args = format!(
-                    "--start {} --end {} --id {}", 
-                    parsed.start, 
-                    parsed.end, 
-                    parsed.id, 
-                );
+                parsed.stringify();
 
-                if parsed.pwd.is_some() && parsed.pwd.clone().unwrap().len() > 0 {
-                    let pwd = parsed.pwd.clone().unwrap();
-                    new_args = format!(
-                        "{} --pwd {}", 
-                        new_args,
-                        pwd
-                    );
-                }
+                let new_args = parsed.stringify();
 
                 Scheduler::new().unwrap()
                     .name(name).unwrap()
