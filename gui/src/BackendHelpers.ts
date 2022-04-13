@@ -2,10 +2,12 @@ import { settings } from './JsonSchemas';
 import { invoke } from '@tauri-apps/api/tauri';
 
 async function fetchTasks(apiUrl: string) {
-    const _data = await fetch(apiUrl);
-    const _json = await _data.json();
-    console.log('Tasks fetched');
-    return _json;
+    const _data = await invoke('fetch_tasks', {url: apiUrl});
+    if (typeof _data == 'string') {
+        const _json = JSON.parse(_data);
+        console.log('Tasks fetched');
+        return _json;
+    }
 }
 
 async function loadSettings() {

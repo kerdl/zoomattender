@@ -25,7 +25,6 @@ import {
 import { X, Check, InfoCircle } from 'tabler-icons-react';
 import { showNotification } from '@mantine/notifications';
 import SettingsWindow from "./SettingsWindow";
-import EditTaskWindow from './EditTaskWindow';
 import { fetchTasks } from './BackendHelpers';
 import { TasksTable } from './TasksTable';
 
@@ -33,6 +32,7 @@ import { TasksTable } from './TasksTable';
 
 const Menu = function Menu(props: any) {
     const [updateInProcess, setUpdateInProcess] = useState(false);
+    const [updateInvokedAutomatically, setUpdateInvokedAutomatically] = useState(false);
     const [updateAutomatically, setUpdateAutomatically] = useState(false);
     const [settingsOpened, setSettingsOpened] = useState(false);
 
@@ -40,6 +40,34 @@ const Menu = function Menu(props: any) {
       fetchTasks(props.settingsContent.tasks.api_url)
         .then(data => props.setFullTasksContent(data));
     }
+
+    function refreshLocalTasksContent(automaticInvoke: boolean) {
+        invoke('get_tasks_from_scheduler')
+          .then(data => {
+            console.log("get_tasks_from_scheduler returned:", data);
+            if (typeof data == "string") {
+              props.setLocalTasksContent(JSON.parse(data))
+              console.log("local tasks content set")
+            }
+          })
+          .then(() => {if (!automaticInvoke) setUpdateInProcess((o) => !o)});
+    }
+
+    useEffect(() => {
+      if (updateInProcess && props.localTasksContent) {
+        let msg = "Задачи обновлены";
+        if (props.localTasksContent.tasks.length < 1) {
+          msg = "Задачи обновлены, но их нет для этой группы";
+        }
+
+        showNotification({
+          color: 'green',
+          icon: <Check />,
+          autoClose: 3000,
+          message: msg,
+        })
+      }
+    }, [props.localTasksContent]);
 
     useEffect(() => {
       if (props.fromInitialSetup) {
@@ -52,23 +80,12 @@ const Menu = function Menu(props: any) {
 
     useEffect(() => {
       if (updateInProcess) {
-        invoke('update_tasks', {
-          tasks: JSON.stringify(props.fullTasksContent), 
-          group: props.settingsContent.tasks.group
-        })
-          .then(data => {console.log(data);})
-          .then(() => invoke('get_tasks_from_scheduler')
-            .then(data => {
-              if (typeof data == "string")
-                props.setLocalTasksContent(JSON.parse(data))
-            }))
-          .then(() => setUpdateInProcess((o) => !o))
-          .then(() => showNotification({
-            color: 'green',
-            icon: <Check />,
-            autoClose: 3000,
-            message: 'Задачи обновлены',
-          }));
+        invoke('delete_all_tasks')
+          .then(() => invoke('update_tasks', {
+            tasks: JSON.stringify(props.fullTasksContent), 
+            group: props.settingsContent.tasks.group
+          })
+            .then(() => {console.log("deleted and updated"); refreshLocalTasksContent(false)}))
       }
     }, [props.fullTasksContent])
 
@@ -120,6 +137,8 @@ const Menu = function Menu(props: any) {
           <Space h='xl' />
 
           <TasksTable 
+            refreshLocalTasksContent={refreshLocalTasksContent}
+
             localTasksContent={props.localTasksContent} 
             setLocalTasksContent={props.setLocalTasksContent}
 

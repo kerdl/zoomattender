@@ -16,7 +16,8 @@ use app::{
     mappings::{
         settings::Settings,
         pref_variants::PrefVariants,
-        windnames::Windnames
+        windnames::Windnames,
+        tasks::Groups
     },
     window, 
     args, 
@@ -56,7 +57,13 @@ fn main() -> Result<()> {
         local_fs::default_json(WINDNAMES_FILE, Windnames::default())?;
     }
 
+    if !ABSOLUTE_DATA_FOLDER.join(LAST_TASKS_RESPONSE).exists() {
+        local_fs::default_json(LAST_TASKS_RESPONSE, Groups::default())?;
+    }
+
     if args.update {
+        println!("updating tasks");
+
         if settings_just_created {
             panic!("App wasn't initialized wtf?");
         }
@@ -70,25 +77,68 @@ fn main() -> Result<()> {
             &settings_str
         ).unwrap();
 
-        let tasks_str = reqwest::blocking::get(
-            settings.tasks.api_url
-        )?.text()?;
+        let tasks_ver = tasks::fetch_tasks(&settings.tasks.api_url)?;
+
+        if tasks_ver.old == tasks_ver.new {
+            println!("tasks not changed");
+            return Ok(());
+        };
+
+        let old_group = tasks_ver.old.groups.iter().find(
+            |g| &g.group == settings.tasks.group.as_ref().unwrap()
+        );
+        let new_group = tasks_ver.new.groups.iter().find(
+            |g| &g.group == settings.tasks.group.as_ref().unwrap()
+        );
+
+        if new_group.is_none() {
+            println!("group not found in new tasks");
+            return Ok(());
+        };
+
+        if old_group.is_some() && old_group.unwrap() == new_group.unwrap() {
+            println!("no new tasks");
+            return Ok(());
+        };
 
         let created = tasks::update_tasks(
-            tasks_str, 
+            serde_json::to_string_pretty(&tasks_ver.new)?, 
             settings.tasks.group.unwrap()
         );
 
-        println!("{:?}", created);
+        println!("created tasks {:?}", created);
 
-        Toast::new(Toast::POWERSHELL_APP_ID)
-            .title("Некоторые Zoom задачи не были установлены")
-            .text1("Возможно, в Zoom Attender будут подробности...")
-            .sound(Some(Sound::Default))
-            .duration(Duration::Long)
-            .scenario(Scenario::Reminder)
-            .show()
-            .expect("unable to toast");
+        if created.is_ok() && created.as_ref().unwrap().is_some() {
+            let mut toast_sent = false;
+
+            for task in created.unwrap().unwrap().tasks {
+                println!("{:?}", task);
+                if task.id == "0" && settings.notifications.questionable_zoom_variant {
+                    Toast::new(Toast::POWERSHELL_APP_ID)
+                        .title("Попалось несколько вариантов данных Zoom")
+                        .text1("Проверь Zoom Attender и установи вариант")
+                        .sound(Some(Sound::Default))
+                        .duration(Duration::Long)
+                        .scenario(Scenario::Reminder)
+                        .show()
+                        .expect("unable to toast");
+                    toast_sent = true;
+                }
+            }
+
+            if !toast_sent && settings.notifications.task_upd_notify {
+                Toast::new(Toast::POWERSHELL_APP_ID)
+                    .title("Обновление задач Zoom Attender")
+                    .text1("Zoom задачи обновлены")
+                    .sound(Some(Sound::Default))
+                    .duration(Duration::Long)
+                    .scenario(Scenario::Reminder)
+                    .show()
+                    .expect("unable to toast");
+            }
+        }
+
+
 
         return Ok(())
     }
@@ -101,6 +151,7 @@ fn main() -> Result<()> {
             gui::auto_upd_turned_on,
             gui::set_automatic_upd,
             gui::get_tasks_from_scheduler,
+            gui::fetch_tasks,
             gui::delete_all_tasks,
             gui::set_task_state,
             gui::update_tasks,

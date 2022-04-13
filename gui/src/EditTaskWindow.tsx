@@ -80,47 +80,61 @@ interface EditTaskWindowProps {
   localTaskContent: localTask,
   prefsContent: prefs,
   setPrefsContent: (prefs: prefs) => void
+  refreshLocalTasksContent: (automaticInvoke: boolean) => void
 }
 function EditTaskWindow(props: EditTaskWindowProps) {
   const [timeValue, setTimeValue] = useState<[Date, Date]>([
     new Date(props.localTaskContent.start), 
     new Date(props.localTaskContent.end)
-  ])
+  ]);
   const [zoomVariantValue, setZoomVariantValue] = useState<string | null>(
     props.localTaskContent.description ? 
     seekVariant(props.localTaskContent, props.localTaskContent.id) : null
-  )
-  const [idValue, setIdValue] = useState(props.localTaskContent.id)
-  const [pwdValue, setPwdValue] = useState(props.localTaskContent.pwd)
+  );
+  const [prevZoomVariantValue, setPrevZoomVariantValue] = useState<string | null>(
+    props.localTaskContent.description ? 
+    seekVariant(props.localTaskContent, props.localTaskContent.id) : null
+  );
+  const [idValue, setIdValue] = useState(props.localTaskContent.id);
+  const [pwdValue, setPwdValue] = useState(props.localTaskContent.pwd);
 
   const required = [
     !!timeValue[0],
     !!timeValue[1],
     !!idValue
-  ]
+  ];
 
   function resetTaskContent() {
+    setTimeValue([new Date(props.localTaskContent.start), new Date(props.localTaskContent.end)]);
     setZoomVariantValue(props.localTaskContent.description ? 
       seekVariant(props.localTaskContent, props.localTaskContent.id) : null
     )
     setIdValue(props.localTaskContent.id)
     setPwdValue(props.localTaskContent.pwd)
-  }
+  };
 
   function setVariant(newVariant: string) {
     if (newVariant != null) {
+      console.log("old variant: " + prevZoomVariantValue, "new variant: " + newVariant)
       invoke('replace_teacher_pref', {
-        old: zoomVariantValue ? zoomVariantValue : "", 
+        old: prevZoomVariantValue ? prevZoomVariantValue : "", 
         new: newVariant
       })
     }
-  }
+    setPrevZoomVariantValue(zoomVariantValue);
+  };
 
   function saveTaskContent() {
     if (required.every(v => v == true)) {
       if (zoomVariantValue) setVariant(zoomVariantValue);
+      let doEnable = props.localTaskContent.enabled;
+      if (props.localTaskContent.id == "0") {
+        doEnable = true;
+      }
+      console.log('local task ' + props.localTaskContent.name);
       invoke('edit_task', {
         name: props.localTaskContent.name, 
+        enabled: doEnable,
         start: formatDateToWindowsUtcPlus3(timeValue[0]), 
         end: formatDateToWindowsUtcPlus3(timeValue[1]), 
         id: idValue, 
@@ -131,7 +145,8 @@ function EditTaskWindow(props: EditTaskWindowProps) {
           icon: <Check />,
           autoClose: 3000,
           message: 'Сохранено',
-        }));
+        }))
+        .then(() => {console.log("refreshing tasks"); props.refreshLocalTasksContent(true)});
     }
     else {
       showNotification({
@@ -141,7 +156,7 @@ function EditTaskWindow(props: EditTaskWindowProps) {
         message: 'Заполнено не всё',
       });
     }
-  }
+  };
 
   return (
     <Modal
@@ -181,6 +196,7 @@ function EditTaskWindow(props: EditTaskWindowProps) {
                   setPwdValue(d.pwd)
                 }
               }
+              console.log("old variant: " + prevZoomVariantValue, "new variant: " + newVariant)
               setZoomVariantValue(newVariant);
             }}
           />

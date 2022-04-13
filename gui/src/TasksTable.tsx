@@ -17,10 +17,11 @@ import {
   MantineProvider,
   LoadingOverlay,
   Transition,
-  Switch
+  Switch,
+  ThemeIcon
 
 } from '@mantine/core';
-import { X, Check } from 'tabler-icons-react';
+import { X, ExclamationMark } from 'tabler-icons-react';
 import { showNotification } from '@mantine/notifications';
 import SettingsWindow from "./SettingsWindow";
 import EditTaskWindow from './EditTaskWindow';
@@ -47,6 +48,7 @@ function formatTime(start: Date, end: Date) {
 }
 
 interface TaskControlsProps {
+  refreshLocalTasksContent: (automaticInvoke: boolean) => void
   localTaskContent: localTask
   prefsContent: prefs
   setPrefsContent: (o: prefs) => void
@@ -54,9 +56,11 @@ interface TaskControlsProps {
 
 function EditModal(props: TaskControlsProps) {
   const [editOpenedState, setEditOpenedState] = useState(false);
+  console.log("edit modal", props.refreshLocalTasksContent)
   return (
     <>
       <EditTaskWindow
+        refreshLocalTasksContent={props.refreshLocalTasksContent}
         opened={editOpenedState}
         toggleFunc={setEditOpenedState}
         localTaskContent={props.localTaskContent}
@@ -86,6 +90,14 @@ function AttendCheckbox(props: TaskControlsProps) {
 
   return (
     <>
+      {props.localTaskContent.id == "0" &&
+        <Tooltip 
+          label='Выбери вариант, нажав "Изменить" напротив задачи' 
+          key="taskErrorTooltip">
+          <ExclamationMark size={22} color='#d2797a'/>
+        </Tooltip>
+      }
+      {props.localTaskContent.id != "0" && 
       <Tooltip label="Посетить" key="attendCheckboxTooltip">
         <Checkbox key="attendCheckbox"
           checked={attendCheckboxState}
@@ -98,6 +110,7 @@ function AttendCheckbox(props: TaskControlsProps) {
           }}
           color="ocean-blue" />
       </Tooltip>
+      }
     </>
   );
 }
@@ -112,6 +125,8 @@ interface taskElements {
 }
 
 interface TasksTableProps {
+  refreshLocalTasksContent: (automaticInvoke: boolean) => void;
+
   localTasksContent: localTasks | null;
   setLocalTasksContent: (tasks: localTasks) => void;
 
@@ -125,7 +140,6 @@ function TasksTable(props: TasksTableProps) {
 
   useEffect(() => {
     if (props.localTasksContent !== null) {
-      if (props.localTasksContent.tasks.length > 0) {
         let els: taskElements[] = [];
         for (let i = 0; i < props.localTasksContent.tasks.length; i++) {
           const t = props.localTasksContent.tasks[i];
@@ -137,12 +151,15 @@ function TasksTable(props: TasksTableProps) {
 
           let time = formatTime(new Date(t.start), new Date(t.end))
 
+          console.log("tasks table", props.refreshLocalTasksContent)
           const checkbox = <AttendCheckbox 
+            refreshLocalTasksContent={props.refreshLocalTasksContent}
             localTaskContent={t} 
             prefsContent={props.prefsContent}
             setPrefsContent={props.setPrefsContent}
           />;
           const edit = <EditModal 
+            refreshLocalTasksContent={props.refreshLocalTasksContent}
             localTaskContent={t}
             prefsContent={props.prefsContent}
             setPrefsContent={props.setPrefsContent}
@@ -158,7 +175,6 @@ function TasksTable(props: TasksTableProps) {
           });
         }
         setElements(els);
-      }
     }
   }, [props.localTasksContent])
 
@@ -231,7 +247,7 @@ function TasksTable(props: TasksTableProps) {
             variant='subtle' 
             color='gray'
             onClick={() => setNotAllTasksModalOpened((s) => !s)}>
-          Не все задачи?
+          Не все задачи / варианты Zoom?
           </Button>
         </Center>
         

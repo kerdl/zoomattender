@@ -23,3 +23,4 @@ pub const DATA_FOLDER: &str = "zoomattender_data";
 pub const SETTINGS_FILE: &str = "settings.json";
 pub const PREFS_FILE: &str = "prefs.json";
 pub const WINDNAMES_FILE: &str = "windnames.json";
+pub const LAST_TASKS_RESPONSE: &str = "_last_tasks_response.json";

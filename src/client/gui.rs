@@ -43,8 +43,13 @@ pub fn session() -> String {
 }
 
 #[tauri::command]
+pub fn fetch_tasks(url: &str) -> String {
+    let versions = tasks::fetch_tasks(url).unwrap();
+    serde_json::to_string_pretty(&versions.new).unwrap()
+}
+
+#[tauri::command]
 pub fn update_tasks(tasks: String, group: String) -> Result<String, String> {
-    delete_all_tasks();
     let result = tasks::update_tasks(tasks, group);
     match result {
         Ok(Some(tasks)) => {
@@ -208,6 +213,7 @@ pub fn set_task_state(name: String, state: bool) -> () {
 #[tauri::command]
 pub fn edit_task(
     name: String, 
+    enabled: Option<bool>,
     start: Option<String>, 
     end: Option<String>, 
     id: Option<String>, 
@@ -249,6 +255,18 @@ pub fn edit_task(
                 let trigger = def.Triggers().unwrap().Item(1).unwrap();
                 let time: ITimeTrigger = trigger.cast::<ITimeTrigger>().unwrap();
 
+                let enabled = {
+                    let current = t.Enabled().unwrap() != 0;
+                    if enabled.is_some() {
+                        enabled.unwrap()
+                    }
+                    else {
+                        current
+                    }
+                };
+
+                println!("task is: {}", enabled);
+
                 if start.is_some() {
                     let start = start.unwrap();
                     time.SetStartBoundary(&*start);
@@ -265,7 +283,7 @@ pub fn edit_task(
                     parsed.id = id;
                 }
             
-                if pwd.is_some() {
+                if pwd.is_some() && pwd.as_ref().unwrap().len() > 0 {
                     parsed.pwd = pwd;
                 }
 
@@ -279,6 +297,7 @@ pub fn edit_task(
                     .folder(TASKS_PATH).unwrap()
                     .action(&path, &new_args, "").unwrap()
                     .time_trigger(&parsed.start, None, None, None, None).unwrap()
+                    .enabled(enabled).unwrap()
                     .register().unwrap();
 
                 break;
@@ -317,6 +336,7 @@ pub fn reset_settings() -> () {
             .unwrap(),
         &serde_json::to_string_pretty(&Settings::default()).unwrap()
     );
+    reset_prefs();
     delete_all_tasks();
     set_automatic_upd(false);
 }

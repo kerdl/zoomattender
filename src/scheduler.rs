@@ -38,6 +38,7 @@ type Result<T> = std::result::Result<T, Box<dyn std::error::Error>>;
 pub struct Scheduler {
     pub name: Option<String>,
     pub folder: Option<ITaskFolder>,
+    enabled: bool,
     service: ITaskService,
     def: ITaskDefinition,
     triggers: ITriggerCollection,
@@ -69,6 +70,7 @@ impl Scheduler {
             let settings: ITaskSettings = def.Settings()?;
 
         Ok(Self {
+            enabled: true,
             name: None,
             folder: None,
             service,
@@ -240,9 +242,14 @@ impl Scheduler {
         Ok(self)
     }
 
+    pub fn enabled(mut self, enabled: bool) -> Result<Self> {
+        self.enabled = enabled;
+        Ok(self)
+    }
+
     pub fn register(self) -> Result<()> {
         unsafe {
-            self.folder.unwrap().RegisterTaskDefinition(
+            let registered = self.folder.unwrap().RegisterTaskDefinition(
                 BSTR::from(self.name.unwrap()), 
                 self.def, 
                 TASK_CREATE_OR_UPDATE.0, 
@@ -251,6 +258,7 @@ impl Scheduler {
                 TASK_LOGON_INTERACTIVE_TOKEN, 
                 None
             )?;
+            registered.SetEnabled(self.enabled as i16)?;
             self.settings.SetEnabled(1)?;
         }
         Ok(())
