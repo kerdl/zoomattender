@@ -1,0 +1,6 @@
+use serde::{Serialize, Deserialize};
+
+#[derive(Serialize, Deserialize, Debug, Clone)]
+pub struct SetWatchOnlyEvent {
+    pub state: bool
+}

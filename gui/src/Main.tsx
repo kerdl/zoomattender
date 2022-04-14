@@ -29,6 +29,7 @@ import { WatchRejoinConfirm } from './WatchRejoinConfirm';
 
 function Main() {
   const [session, setSession] = useState("");
+  const [initialState, setInitialState] = useState("");
   const [timeout, setTimeout] = useState<null | number>(null);
 
   const [showInitialSetup, setShowInitialSetup] = useState(false);
@@ -39,6 +40,8 @@ function Main() {
   const [settingsContent, setSettingsContent] = useState<null | settings>(null);
   const [prefsContent, setPrefsContent] = useState<null | prefs>(null);
   const [windnamesContent, setWindnamesContent] = useState<null | any>(null);
+
+  invoke('initial_state').then((s) => {if (typeof s == "string") setInitialState(s)});
 
   function doDisplayLoader() {
     if (session == "client") {
@@ -151,6 +154,7 @@ function Main() {
         setShowInitialSetup={setShowInitialSetup}/>}
 
       {session === "client" && !showInitialSetup && <Menu 
+        initialState={initialState}
         langs={windnamesContent}
         fromInitialSetup={fromInitialSetup}
 

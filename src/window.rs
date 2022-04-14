@@ -1,6 +1,6 @@
 use windows::{
     core::{
-        PSTR, PCSTR
+        PCWSTR, PWSTR
     },
     Win32::{
         Foundation::BOOL,
@@ -8,8 +8,8 @@ use windows::{
             CREATE_NO_WINDOW,
             PROCESS_INFORMATION,
             PROCESS_CREATION_FLAGS,
-            STARTUPINFOEXA,
-            CreateProcessA,
+            STARTUPINFOEXW,
+            CreateProcessW,
         },
     }
 };
@@ -30,28 +30,28 @@ pub fn kill_all(name: &str) {
 #[derive(Debug)]
 pub struct ProcessInfo {
     pub status: BOOL,
-    pub app_name: PCSTR,
+    pub app_name: PCWSTR,
     pub info: PROCESS_INFORMATION,
-    pub startup: STARTUPINFOEXA
+    pub startup: STARTUPINFOEXW
 }
 
 pub fn create_process(
     cmdline: &str,
     creation_flag: PROCESS_CREATION_FLAGS
 ) -> Result<ProcessInfo> {
-    let app_name: PCSTR = PCSTR(0 as *const u8);
-    let _cmdline = std::ffi::CString::new(cmdline).unwrap().into_raw();
+    let app_name: PCWSTR = PCWSTR(0 as *const u16);
     let mut pi = PROCESS_INFORMATION::default();
-    let mut si = STARTUPINFOEXA::default();
-    let status = unsafe {CreateProcessA(
+    let mut si = STARTUPINFOEXW::default();
+
+    let status = unsafe {CreateProcessW(
         app_name, 
-        PSTR(_cmdline as *mut u8), 
+        PWSTR(cmdline.encode_utf16().collect::<Vec<u16>>().as_mut_ptr()), 
         std::ptr::null_mut(), 
         std::ptr::null_mut(), 
         true, 
         creation_flag, 
         std::ptr::null_mut(), 
-        PCSTR(0 as *const u8), 
+        PCWSTR(0 as *const u16), 
         &mut si.StartupInfo, 
         &mut pi
     )};

@@ -13,6 +13,8 @@ pub struct WatchArgs {
     pub id: String,
     #[clap(short, long)]
     pub pwd: Option<String>,
+    #[clap(short, long, min_values(0))]
+    pub watchonly: bool
 }
 impl WatchArgs {
     pub fn new(
@@ -20,7 +22,8 @@ impl WatchArgs {
         start: String, 
         end: String, 
         id: String, 
-        pwd: Option<String>
+        pwd: Option<String>,
+        watchonly: bool
     ) -> Self {
         Self {
             name,
@@ -28,6 +31,7 @@ impl WatchArgs {
             end,
             id,
             pwd,
+            watchonly
         }
     }
     pub fn stringify(&self) -> String {
@@ -43,6 +47,9 @@ impl WatchArgs {
             args.push_str(" --pwd ");
             args.push_str(self.pwd.as_ref().unwrap());
         }
+        if self.watchonly {
+            args.push_str(" --watchonly ");
+        }
         args
     }
 }
@@ -50,6 +57,29 @@ impl WatchArgs {
 #[derive(Parser, Debug)]
 #[clap(author, version, about, long_about = None)]
 pub struct ClientArgs {
+    #[clap(short, long)]
+    pub state: Option<String>,
     #[clap(short, long, min_values(0))]
-    pub update: bool,
+    pub update: bool
+}
+
+impl ClientArgs {
+    pub fn new(state: Option<String>, update: bool) -> Self {
+        Self {
+            state,
+            update
+        }
+    }
+    pub fn stringify(&self) -> String {
+        let mut args = "--state ".to_string();
+        if self.state.is_some() {
+            args.push_str(self.state.as_ref().unwrap());
+        }
+
+        if self.update {
+            args.push_str("--update");
+        }
+
+        args
+    }
 }

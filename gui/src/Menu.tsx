@@ -36,6 +36,14 @@ const Menu = function Menu(props: any) {
     const [updateAutomatically, setUpdateAutomatically] = useState(false);
     const [settingsOpened, setSettingsOpened] = useState(false);
 
+    useEffect(() => {
+      if (props.initialState) {
+        switch (props.initialState) {
+          case "settings": setSettingsOpened(true);
+        }
+      }
+    }, [props.initialState])
+
     function _fetchTasks() {
       fetchTasks(props.settingsContent.tasks.api_url)
         .then(data => props.setFullTasksContent(data));

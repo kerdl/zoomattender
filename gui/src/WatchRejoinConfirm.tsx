@@ -26,37 +26,11 @@ import {
   TextInput
 } from '@mantine/core';
 import { invoke } from '@tauri-apps/api';
+import { emit } from '@tauri-apps/api/event'
 import { appWindow } from '@tauri-apps/api/window'
 import { useState, useEffect } from 'react';
-import { ZoomQuestion, Language } from 'tabler-icons-react';
+import { ZoomQuestion, Settings } from 'tabler-icons-react';
 
-interface ZoomLanguageEditModalProps {
-    opened: boolean;
-    onClose: () => void;
-}
-
-function ZoomLanguageEditModal(props: ZoomLanguageEditModalProps) {
-    return (
-      <Modal 
-        centered
-        title="Язык Zoom"
-        opened={props.opened} 
-        onClose={props.onClose}>
-        <Container>
-          <Select
-            data={[
-              { value: 'en', label: 'English' },
-              { value: 'ru', label: 'Русский' }
-            ]}
-            value={'en'}
-            onChange={(e) => {
-              console.log(e);
-            }}
-          />
-        </Container>
-      </Modal>
-    );
-}
 
 interface WatchRejoinConfirmProps {
     timeout: number | null;
@@ -64,7 +38,7 @@ interface WatchRejoinConfirmProps {
 }
 
 function WatchRejoinConfirm(props: WatchRejoinConfirmProps) {
-    const [langEditOpened, setLangEditOpened] = useState(false);
+    const [clientWasOpened, setClientWasOpened] = useState(false);
 
     const [timerFill, setTimerFill] = useState(100);
 
@@ -72,11 +46,21 @@ function WatchRejoinConfirm(props: WatchRejoinConfirmProps) {
     const [taskStart, setTaskStart] = useState('');
     const [taskEnd, setTaskEnd] = useState('');
 
-    invoke('task_name').then(name => {if (typeof name == "string") setTaskName(name) });
-    invoke('task_start').then(start => {if (typeof start == "string") setTaskStart(start) });
-    invoke('task_end').then(end => {if (typeof end == "string") setTaskEnd(end) });
-
     useEffect(() => {
+      invoke('task_name').then(name => {
+        if (typeof name == "string") {
+          console.log("task name: " + name); setTaskName(name)
+        } 
+      });
+      invoke('task_start').then(start => {
+        if (typeof start == "string") 
+          setTaskStart(start) 
+      });
+      invoke('task_end').then(end => {
+        if (typeof end == "string") 
+          setTaskEnd(end) 
+      });
+
       appWindow.center();
       appWindow.setFocus();
     }, [])
@@ -85,7 +69,7 @@ function WatchRejoinConfirm(props: WatchRejoinConfirmProps) {
     useEffect(() => {
       if (props.timeout != null && timerFill > 0) {
         const interval = setInterval(() => {
-          if (langEditOpened) {
+          if (clientWasOpened) {
             setTimerFill(100);
           }
           else if (timerFill > 0) {
@@ -132,18 +116,18 @@ function WatchRejoinConfirm(props: WatchRejoinConfirmProps) {
                 </Group>
               </Center>
               </Alert>
-          <ZoomLanguageEditModal 
-            opened={langEditOpened} 
-            onClose={() => setLangEditOpened((s) => !s)} />
           <Space h={10} />
           <Center>
             <Button 
               compact 
               variant='subtle' 
-              leftIcon={<Language size={18}/>} 
+              leftIcon={<Settings size={18}/>} 
               color='gray'
-              onClick={() => setLangEditOpened((s) => !s)}>
-            Изменить язык Zoom
+              onClick={() => {
+                invoke('run_client', {state: 'settings'}).then(() => emit('watchonly', {state: true}))
+                setClientWasOpened((s) => !s)
+              }}>
+            Изменить настройки
             </Button>
           </Center>
           <Space h={10} />

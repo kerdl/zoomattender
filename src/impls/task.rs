@@ -45,7 +45,8 @@ impl Task {
             self.start.clone(), 
             self.end.clone(), 
             id.clone(), 
-            args_pwd.clone()
+            args_pwd.clone(),
+            false
         ).stringify();
 
         let must_enable = {

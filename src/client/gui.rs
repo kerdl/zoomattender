@@ -12,6 +12,7 @@ use app::{
     args
 };
 use crate::{
+    ARGS,
     window,
     dt,
     tasks
@@ -46,6 +47,15 @@ pub fn session() -> String {
 pub fn fetch_tasks(url: &str) -> String {
     let versions = tasks::fetch_tasks(url).unwrap();
     serde_json::to_string_pretty(&versions.new).unwrap()
+}
+
+#[tauri::command]
+pub fn initial_state() -> String {
+    if ARGS.state.is_some() {
+        return ARGS.state.clone().unwrap();
+    }
+
+    return "".to_string();
 }
 
 #[tauri::command]

@@ -12,6 +12,7 @@ use app::{
     mappings::{
         settings::Settings,
         windnames::Windnames,
+        events::SetWatchOnlyEvent
     },
     window, 
     args, 
@@ -20,9 +21,9 @@ use app::{
 use lazy_static::lazy_static;
 use serde_json;
 use clap::Parser;
-use tauri::{RunEvent, WindowEvent};
+use tauri::{RunEvent, WindowEvent, Manager};
 use watchdog::Watchdog;
-use windows::Win32::System::Threading::CREATE_NO_WINDOW;
+use windows::Win32::System::Threading::{CREATE_NO_WINDOW, INHERIT_PARENT_AFFINITY};
 use zoom::Zoom;
 use chrono::{DateTime, Duration};
 use ::core::time;
@@ -38,6 +39,8 @@ lazy_static! {
         ).unwrap().to_string();
         serde_json::from_str(&settings_str).unwrap()
     };
+
+    pub static ref WATCHONLY: std::sync::Mutex<bool> = std::sync::Mutex::new(false);
 }
 
 fn main() -> Result<()> {
@@ -50,7 +53,7 @@ fn main() -> Result<()> {
     let windnames: Windnames = serde_json::from_str(&windnames_str)?;
 
     // если поставлено убивать зум
-    if SETTINGS.conflicts.kill_zoom {
+    if !ARGS.watchonly && SETTINGS.conflicts.kill_zoom {
         // убить зум
         window::kill_all(ZOOM_EXE_NAME);
         println!("zoom killed, sleeping 2 sec...");
@@ -61,11 +64,13 @@ fn main() -> Result<()> {
     let zoom = Zoom::new(SETTINGS.zoom.zoom_path.clone());
 
     // если есть пароль от конфы
-    if ARGS.pwd.is_some() {
-        zoom.run_from_id_pwd(&ARGS.id, Some(ARGS.pwd.as_ref().unwrap()))?;
-    }
-    else {
-        zoom.run_from_id_pwd(&ARGS.id, None)?;
+    if !ARGS.watchonly {
+        if ARGS.pwd.is_some() {
+            zoom.run_from_id_pwd(&ARGS.id, Some(ARGS.pwd.as_ref().unwrap()))?;
+        }
+        else {
+            zoom.run_from_id_pwd(&ARGS.id, None)?;
+        }
     }
 
     // если надо перезаходить
@@ -96,6 +101,16 @@ fn main() -> Result<()> {
 
         println!("won't rejoin after: {:?}", do_not_rejoin_time);
 
+        // даём фору пока зум запустится
+        if !ARGS.watchonly {
+            std::thread::sleep(time::Duration::from_secs(
+                SETTINGS.rejoin.do_not_watch.into())
+            );
+        }
+        
+        // смотрим за зумом каждую секунду
+        wd.watch();
+
         // получаем текущее время
         let now = chrono::offset::Local::now();
 
@@ -105,24 +120,30 @@ fn main() -> Result<()> {
             return Ok(());
         }
 
-        // даём фору пока зум запустится
-        std::thread::sleep(time::Duration::from_secs(
-            SETTINGS.rejoin.do_not_watch.into())
-        );
-
-        // смотрим за зумом каждую секунду
-        wd.watch();
-
-        // если зум пропал, открываем новое окно с подтверждением перезахода
+        // если время не вышло и зум пропал, 
+        // открываем новое окно с подтверждением перезахода
         tauri::Builder::default()
             .invoke_handler(tauri::generate_handler![
                 gui::session,
+                gui::run_client,
                 gui::timeout,
                 gui::task_name,
                 gui::task_start,
                 gui::task_end,
                 gui::exit_main
             ])
+            .setup(|app| {
+                app.listen_global("watchonly", |event| {
+                    let evt: SetWatchOnlyEvent = serde_json::from_str(
+                        event.payload().unwrap()
+                    ).unwrap();
+                    println!("watchonly event: {:?}", evt);
+                    let mut w = WATCHONLY.lock().unwrap();
+                    *w = evt.state;
+                    println!("watchonly: {:?}", *w);
+                });
+                Ok(())
+            })
             .build(tauri::generate_context!(".\\tauri.watch.conf.json"))
             .expect("error while running tauri application")
             .run(|handle, e| {
@@ -140,6 +161,11 @@ fn main() -> Result<()> {
                     RunEvent::ExitRequested {api: _, ..} => {
                         println!("rejoining in separate process");
 
+                        let watchonly = {
+                            let w = WATCHONLY.lock().unwrap();
+                            *w
+                        };
+
                         // копируем аргументы, которые были у этого watch.exe
                         let self_args = args::WatchArgs::new(
                             ARGS.name.clone(),
@@ -147,6 +173,7 @@ fn main() -> Result<()> {
                             ARGS.end.clone(),
                             ARGS.id.clone(),
                             ARGS.pwd.clone(),
+                            watchonly
                         );
                         let self_args_str = self_args.stringify();
 
@@ -156,10 +183,12 @@ fn main() -> Result<()> {
                                 self_args_str
                         );
 
+                        println!("{}", exe_and_args);
+
                         // создаём новый процесс watch.exe
                         let p = window::create_process(
                             &exe_and_args, 
-                            CREATE_NO_WINDOW
+                            INHERIT_PARENT_AFFINITY
                         );
                         if p.is_err() {
                             println!("{}", p.unwrap_err());

@@ -8,7 +8,7 @@ pub mod tasks;
 pub mod local_fs;
 pub mod dt;
 
-use reqwest;
+use lazy_static::lazy_static;
 use clap::Parser;
 use winrt_notification::{Duration, Sound, Toast, Scenario};
 use app::{
@@ -23,6 +23,10 @@ use app::{
     args, 
     consts::*
 };
+
+lazy_static! {
+    pub static ref ARGS: args::ClientArgs = args::ClientArgs::parse();
+}
 
 type Result<T> = std::result::Result<T, Box<dyn std::error::Error>>;
 
@@ -138,14 +142,13 @@ fn main() -> Result<()> {
             }
         }
 
-
-
         return Ok(())
     }
 
     tauri::Builder::default()
         .invoke_handler(tauri::generate_handler![
             gui::session,
+            gui::initial_state,
             gui::open_scheduler,
             gui::open_link,
             gui::auto_upd_turned_on,
