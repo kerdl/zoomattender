@@ -18,7 +18,7 @@ pub const ZOOM_EXE_NAME: &str = "Zoom.exe";
 
 pub const AUTOMATIC_UPD_TASK_NAME: &str = "_Automatic_Update";
 pub const TASKS_PATH: &str = "\\ZoomAttender";
-pub const CLIENT_EXE: &str = "client.exe";
+pub const CLIENT_EXE: &str = "ZoomAttender.exe";
 pub const WATCH_EXE: &str = "watch.exe";
 pub const DATA_FOLDER: &str = "zoomattender_data";
 pub const SETTINGS_FILE: &str = "settings.json";
