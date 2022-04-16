@@ -63,12 +63,15 @@ fn main() -> Result<()> {
     // инициализируем штуку для запуска зума
     let zoom = Zoom::new(SETTINGS.zoom.zoom_path.clone());
 
-    // если есть пароль от конфы
+    // если не перезаход после изменения настроек
     if !ARGS.watchonly {
+        // если есть пароль от конфы
         if ARGS.pwd.is_some() {
+            // запустить зум с паролем
             zoom.run_from_id_pwd(&ARGS.id, Some(ARGS.pwd.as_ref().unwrap()))?;
         }
         else {
+            // запустить зум без пароля
             zoom.run_from_id_pwd(&ARGS.id, None)?;
         }
     }
@@ -100,9 +103,10 @@ fn main() -> Result<()> {
         );
 
         println!("won't rejoin after: {:?}", do_not_rejoin_time);
-
-        // даём фору пока зум запустится
+        
+        // если не перезаход после изменения настроек
         if !ARGS.watchonly {
+            // даём фору пока зум запустится
             std::thread::sleep(time::Duration::from_secs(
                 SETTINGS.rejoin.do_not_watch.into())
             );
