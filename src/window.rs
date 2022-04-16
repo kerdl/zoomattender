@@ -43,9 +43,12 @@ pub fn create_process(
     let mut pi = PROCESS_INFORMATION::default();
     let mut si = STARTUPINFOEXW::default();
 
+    let mut cmdline_clone = cmdline.to_string();
+    cmdline_clone.push_str("\0");
+
     let status = unsafe {CreateProcessW(
         app_name, 
-        PWSTR(cmdline.encode_utf16().collect::<Vec<u16>>().as_mut_ptr()), 
+        PWSTR(cmdline_clone.encode_utf16().collect::<Vec<u16>>().as_mut_ptr()), 
         std::ptr::null_mut(), 
         std::ptr::null_mut(), 
         true, 
@@ -55,6 +58,13 @@ pub fn create_process(
         &mut si.StartupInfo, 
         &mut pi
     )};
+
+    println!("{:?}", ProcessInfo {
+        status, 
+        app_name,
+        info: pi,
+        startup: si
+    });
 
     Ok(ProcessInfo {
         status, 

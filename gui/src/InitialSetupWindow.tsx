@@ -53,7 +53,7 @@ function InitialSetupWindow(props: any) {
 
     useEffect(() => {
       if (props.settingsContent && !props.fullTasksContent) { 
-        fetchTasks(props.settingsContent.tasks.api_url)
+        fetchTasks(props.settingsContent.tasks.api_url, false)
           .then(tasks => {props.setFullTasksContent(tasks)})
       }
     }, [props.settingsContent])

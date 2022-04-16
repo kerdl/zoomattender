@@ -4,7 +4,7 @@
     "version": "0.1.0"
   },
   "build": {
-    "distDir": "http://127.0.0.1:3000",
+    "distDir": "./gui/build",
     "devPath": "http://127.0.0.1:3000",
     "beforeDevCommand": "",
     "beforeBuildCommand": "",
@@ -14,7 +14,7 @@
     "bundle": {
       "active": true,
       "targets": "all",
-      "identifier": "com.tauri.dev",
+      "identifier": "com.tauri.zoomattender",
       "icon": [
         "icons/32x32.png",
         "icons/128x128.png",
@@ -23,10 +23,10 @@
         "icons/icon.ico"
       ],
       "resources": [],
-      "externalBin": [],
+      "externalBin": ["./zoomattender_build"],
       "copyright": "",
       "category": "DeveloperTool",
-      "shortDescription": "",
+      "shortDescription": "Attends Zoom meetings",
       "longDescription": "",
       "deb": {
         "depends": [],

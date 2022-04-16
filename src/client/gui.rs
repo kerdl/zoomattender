@@ -44,8 +44,8 @@ pub fn session() -> String {
 }
 
 #[tauri::command]
-pub fn fetch_tasks(url: &str) -> String {
-    let versions = tasks::fetch_tasks(url).unwrap();
+pub fn fetch_tasks(url: &str, store_resp: bool) -> String {
+    let versions = tasks::fetch_tasks(url, store_resp).unwrap();
     serde_json::to_string_pretty(&versions.new).unwrap()
 }
 

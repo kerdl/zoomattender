@@ -25,11 +25,12 @@ import {
   Paper,
   TextInput
 } from '@mantine/core';
+import { showNotification } from '@mantine/notifications';
 import { invoke } from '@tauri-apps/api';
 import { emit } from '@tauri-apps/api/event'
 import { appWindow } from '@tauri-apps/api/window'
 import { useState, useEffect } from 'react';
-import { ZoomQuestion, Settings } from 'tabler-icons-react';
+import { ZoomQuestion, Settings, Check } from 'tabler-icons-react';
 
 
 interface WatchRejoinConfirmProps {
@@ -83,14 +84,11 @@ function WatchRejoinConfirm(props: WatchRejoinConfirmProps) {
       }
     }, [timerFill, props.timeout]);
 
-
-
-
     //close window if timer is over
     useEffect(() => {
-        //if (props.timeout !== null && timerFill === 0) {
-        //  appWindow.close();
-        //}
+        if (props.timeout !== null && timerFill === 0) {
+          appWindow.close();
+        }
     }, [timerFill]);
 
     return (
@@ -118,18 +116,36 @@ function WatchRejoinConfirm(props: WatchRejoinConfirmProps) {
               </Alert>
           <Space h={10} />
           <Center>
+            <Group direction='row'>
             <Button 
               compact 
               variant='subtle' 
               leftIcon={<Settings size={18}/>} 
               color='gray'
               onClick={() => {
-                invoke('run_client', {state: 'settings'}).then(() => emit('watchonly', {state: true}))
-                setClientWasOpened((s) => !s)
+                invoke('run_client', {state: 'settings'});
+                setClientWasOpened(true);
+                showNotification({
+                  color: 'green',
+                  icon: <Check />,
+                  autoClose: 5000,
+                  message: 'Клиент запущен, сохрани настройки и затем нажми на ✓',
+                });
               }}>
             Изменить настройки
             </Button>
-          </Center>
+            {clientWasOpened && <Tooltip label="Применить">
+              <ActionIcon
+              color='gray'
+              variant='light'
+              onClick={
+                () => emit('watchonly', {state: true}).then(() => appWindow.close())
+              }>
+                <Check size={18}/>
+            </ActionIcon>
+            </Tooltip>}
+            </Group>
+          </Center> 
           <Space h={10} />
           <Progress value={timerFill} color='blue' />
           <Group direction='column'>

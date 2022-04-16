@@ -1,7 +1,10 @@
 use app::{consts::*, args};
 use crate::{ARGS, SETTINGS, window};
 use chrono::DateTime;
-use windows::Win32::System::Threading::CREATE_NO_WINDOW;
+use windows::Win32::{
+    Foundation::BOOL,
+    System::Threading::CREATE_NO_WINDOW
+};
 
 #[tauri::command]
 pub fn session() -> String {
@@ -35,7 +38,13 @@ pub fn task_end() -> String {
 pub fn run_client(state: Option<String>) {
     let a = args::ClientArgs::new(state, false).stringify();
     let path = window::to_cmdline(ABSOLUTE_FOLDER.join(CLIENT_EXE).to_str().unwrap());
-    window::create_process(&format!("{} {}", path, a), CREATE_NO_WINDOW);
+    let proc = window::create_process(&format!("{} {}", path, a), CREATE_NO_WINDOW);
+
+    if proc.unwrap().status == BOOL(1) {
+        println!("client run");
+    } else {
+        println!("client run error");
+    }
 }
 
 #[tauri::command]

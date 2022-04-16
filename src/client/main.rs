@@ -81,7 +81,7 @@ fn main() -> Result<()> {
             &settings_str
         ).unwrap();
 
-        let tasks_ver = tasks::fetch_tasks(&settings.tasks.api_url)?;
+        let tasks_ver = tasks::fetch_tasks(&settings.tasks.api_url, true)?;
 
         if tasks_ver.old == tasks_ver.new {
             println!("tasks not changed");

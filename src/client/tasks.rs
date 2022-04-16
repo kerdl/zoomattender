@@ -21,7 +21,7 @@ pub struct TasksResponseVersion {
     pub old: Groups,
 }
 
-pub fn fetch_tasks(url: &str) -> Result<TasksResponseVersion> {
+pub fn fetch_tasks(url: &str, store_resp: bool) -> Result<TasksResponseVersion> {
     let old_resp: Groups = {
         let s = std::fs::read_to_string(
             ABSOLUTE_DATA_FOLDER.join(LAST_TASKS_RESPONSE)
@@ -34,7 +34,9 @@ pub fn fetch_tasks(url: &str) -> Result<TasksResponseVersion> {
         serde_json::from_str(&s)?
     };
 
-    local_fs::default_json(LAST_TASKS_RESPONSE, &new_resp)?;
+    if store_resp {
+        local_fs::default_json(LAST_TASKS_RESPONSE, &new_resp)?;
+    }
 
     Ok(TasksResponseVersion {old: old_resp, new: new_resp})
 }

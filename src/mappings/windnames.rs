@@ -24,7 +24,10 @@ impl Windnames {
             ru: Russian { 
                 label: "Русский".to_string(), 
                 names: vec![
-                "Хуй знает".to_string()
+                "ConfMeetingNotfiyWnd".to_string(),
+                "Соединение".to_string(),
+                "Zoom Конференция".to_string(),
+                "Ожидание организатора".to_string(),
                 ]
             },
             en: English { 

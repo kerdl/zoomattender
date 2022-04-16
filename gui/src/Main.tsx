@@ -41,8 +41,6 @@ function Main() {
   const [prefsContent, setPrefsContent] = useState<null | prefs>(null);
   const [windnamesContent, setWindnamesContent] = useState<null | any>(null);
 
-  invoke('initial_state').then((s) => {if (typeof s == "string") setInitialState(s)});
-
   function doDisplayLoader() {
     if (session == "client") {
       return (
@@ -67,6 +65,14 @@ function Main() {
     if (typeof _s === "string") {
       console.log('Session:', _s);
       setSession(_s)
+    };
+  }
+
+  async function _getInitialState() {
+    const _s = await invoke('initial_state');
+    if (typeof _s === "string") {
+      console.log('Initial state:', _s);
+      setInitialState(_s)
     };
   }
 
@@ -119,6 +125,7 @@ function Main() {
 
   useEffect(() => {
     if (session === "client") {
+      _getInitialState();
       _loadSettings();
       _loadPrefs();
       _loadWindnames();
