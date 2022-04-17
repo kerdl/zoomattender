@@ -21,3 +21,7 @@ translating this thing to English and fixing my bullshit.
 GUI codebase is a complete disaster.
 
 And sorry, no English comments. Figure everything out yourself.
+
+This documentation may be useful,
+but prepare a translator: 
+https://vk.com/@ktmuslave-zoomattender
