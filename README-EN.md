@@ -17,6 +17,7 @@ on API server and the client fetches them.
 Dunno... If your situation is same as mine,
 you could try creating a fork, editing an API response
 schema `(./src/mappings/tasks.rs)`, adapting a new schema, 
+making your own schedule parser, running your own HTTP API server,
 translating this thing to English and fixing my bullshit.
 GUI codebase is a complete disaster.
 
