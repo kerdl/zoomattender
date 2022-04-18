@@ -14,8 +14,8 @@ this is a key thing here: it edits tasks content
 on API server and the client fetches them.
 
 # How rejoin works
-1. Using EnumWindows to get all running
-windows (in a loop with 1 second sleep);
+1. Using [EnumWindows](https://github.com/kerdl/zoomattender/blob/5ee3650988e3e998587f16b8eb5061c65c0d9af9/src/watch/watchdog.rs#L17-L33) 
+to get all opened windows (in a loop with 1 second sleep);
 2. Checking: 
 * if even one window from [here](https://github.com/kerdl/zoomattender/blob/fde28a5ea47e02472095401c54c8572729ea4f32/src/mappings/windnames.rs#L35) 
 is in this enum,
