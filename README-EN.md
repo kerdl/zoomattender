@@ -24,7 +24,7 @@ than `target_window.len() + 3`;
 3. If everything is great, 
 continue iterating on and on,
 else continue iterating only up to 3 times,
-and if none of them were found, pop up
+and if none of them were still found, pop up
 a rejoin confirm window.
 
 It could just go and instantly rejoin,
