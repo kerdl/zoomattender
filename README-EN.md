@@ -45,3 +45,7 @@ And sorry, no English comments. Figure everything out yourself.
 This documentation may be useful,
 but prepare a translator: 
 https://vk.com/@ktmuslave-zoomattender
+
+SHOUTOUT TO THIS REPO WHICH INSPIRED 
+ME!!!: https://github.com/j-hc/windows-taskscheduler-api-rust 
+:sunglasses:
