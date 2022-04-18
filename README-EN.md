@@ -20,7 +20,7 @@ windows (in a loop with 1 second sleep);
 * if even one window from [here](https://github.com/kerdl/zoomattender/blob/fde28a5ea47e02472095401c54c8572729ea4f32/src/mappings/windnames.rs#L35) 
 is in this enum,
 * if overall checked window name is not longer
-than (target_window.len() + 3);
+than `target_window.len() + 3`;
 3. If everything is great, 
 continue iterating on and on,
 else continue iterating only up to 3 times,
