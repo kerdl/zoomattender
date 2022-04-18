@@ -13,6 +13,24 @@ I've made a schedule parser long time ago and now
 this is a key thing here: it edits tasks content
 on API server and the client fetches them.
 
+# How rejoin works
+1. Using EnumWindows to get all running
+windows (in a loop with 1 second sleep);
+2. Checking: 
+• if even one window from [here](https://github.com/kerdl/zoomattender/blob/fde28a5ea47e02472095401c54c8572729ea4f32/src/mappings/windnames.rs#L35) 
+is in this enum,
+• if overall checked window name is not longer
+than (target_window.len() + 3);
+3. If everything is great, 
+continue iterating on and on,
+else continue iterating only up to 3 times,
+and if none of them were found, pop up
+a rejoin confirm window.
+
+It could just go and instantly rejoin,
+but we don't know if Zoom was closed
+by the user or the meeting has really ended.
+
 # How to make a use from it
 Dunno... If your situation is same as mine,
 you could try creating a fork, editing an API response
