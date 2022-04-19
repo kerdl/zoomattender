@@ -27,6 +27,7 @@ impl Windnames {
                 "ConfMeetingNotfiyWnd".to_string(),
                 "Соединение".to_string(),
                 "Zoom Конференция".to_string(),
+                "Zoom Конференция, 40 мин".to_string(),
                 "Ожидание организатора".to_string(),
                 ]
             },
@@ -36,6 +37,7 @@ impl Windnames {
                 "ConfMeetingNotfiyWnd".to_string(),
                 "Connecting".to_string(),
                 "Zoom Meeting".to_string(),
+                "Zoom Meeting 40-Minutes".to_string(),
                 "Waiting for Host".to_string()
             ]
             }
