@@ -1,3 +1,9 @@
+# Won't update anymore
+Fork it only if your passion is shitcoder
+
+I'm planning to create something more
+clean, stable and with more features
+
 # What's this?
 A Tauri app that creates tasks for attending online classes.
 
@@ -31,7 +37,7 @@ It could just go and instantly rejoin,
 but we don't know if Zoom was closed
 by the user or the meeting has really ended.
 
-# How to make a use from it
+# How to make a use from it (please don't)
 Dunno... If your situation is same as mine,
 you could try creating a fork, editing an [API response
 schema](https://github.com/kerdl/zoomattender/blob/master/src/mappings/tasks.rs), 
